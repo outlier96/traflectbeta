@@ -1,0 +1,8 @@
+{
+  "name": "position-size-calculator",
+  "version": "1.0.0",
+  "description": "Position size calculator with beta waitlist",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

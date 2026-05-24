@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Position Size Calculator</title>
+<meta name="description" content="Free position size calculator for crypto and forex traders. Get your exact position size in seconds.">
+<meta property="og:title" content="Position Size Calculator">
+<meta property="og:description" content="Stop guessing your position size. Free for crypto and forex traders.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#050608;
+  --surface:#0c0e12;
+  --surface2:#12151b;
+  --border:#1e2230;
+  --border2:#2a2f40;
+  --purple:#7c3aed;
+  --purple-dim:#3b1d7a;
+  --purple-glow:rgba(124,58,237,.18);
+  --purple-text:#c4b5fd;
+  --green:#10b981;
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --text:#e8eaf0;
+  --muted:#4a5068;
+  --muted2:#6b7280;
+  --mono:'Space Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:.35;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:-30vh;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 65%);pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:48px 20px 80px}
+
+/* Hero */
+.hero{margin-bottom:40px}
+.hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted2);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--muted)}
+h1{font-family:var(--mono);font-size:clamp(26px,5vw,38px);font-weight:700;line-height:1.15;letter-spacing:-.02em;color:#fff;margin-bottom:14px}
+h1 span{color:var(--purple-text)}
+.hero-sub{font-size:15px;color:var(--muted2);line-height:1.7;max-width:420px}
+
+/* Mode picker */
+.mode-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+.mode-btn{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:18px 16px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:relative;overflow:hidden}
+.mode-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;transition:background .2s}
+.mode-btn:hover{background:var(--surface2)}
+.mode-btn.active{border-color:var(--purple);background:var(--purple-glow)}
+.mode-btn.active::before{background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+.mode-icon{font-family:var(--mono);font-size:18px;line-height:1}
+.mode-label{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;color:#fff}
+.mode-sub{font-size:12px;color:var(--muted2);line-height:1.4}
+.mode-btn.active .mode-label{color:var(--purple-text)}
+
+/* Divider */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:28px 0}
+
+/* Card */
+.calc-card{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:32px;margin-bottom:24px;position:relative}
+.calc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+
+/* Inputs */
+.calc-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.calc-label span{font-size:9px;letter-spacing:.06em}
+.field-wrap{margin-bottom:20px}
+.calc-input-wrap{display:flex;align-items:center;background:var(--black);border:1px solid var(--border2);border-radius:3px;overflow:hidden;transition:border-color .2s}
+.calc-input-wrap:focus-within{border-color:var(--purple)}
+.calc-input-wrap.error{border-color:var(--red)!important}
+.calc-pfx,.calc-sfx{padding:0 14px;font-family:var(--mono);font-size:13px;color:var(--muted);background:var(--surface2);height:48px;display:flex;align-items:center;flex-shrink:0;user-select:none}
+.calc-pfx{border-right:1px solid var(--border)}
+.calc-sfx{border-left:1px solid var(--border)}
+.calc-input{flex:1;background:none;border:none;outline:none;color:#fff;font-family:var(--mono);font-size:18px;font-weight:700;padding:0 16px;height:48px;min-width:0}
+.calc-input::placeholder{color:var(--muted);font-size:14px;font-weight:400}
+.calc-input::-webkit-outer-spin-button,.calc-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.calc-input[type=number]{-moz-appearance:textfield}
+.field-error{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:.06em;margin-top:4px;display:none}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Slider */
+.slider-row{margin-bottom:24px}
+.slider-val{font-family:var(--mono);font-size:32px;font-weight:700;color:#fff;text-align:center;margin-bottom:4px}
+.slider-zone{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-align:center;margin-bottom:12px;padding:3px 0;min-height:20px}
+.risk-slider{width:100%;-webkit-appearance:none;height:3px;border-radius:99px;outline:none;cursor:pointer;background:var(--border2)}
+.risk-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--purple);cursor:pointer}
+.risk-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--purple);cursor:pointer;border:none}
+.risk-ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+
+/* Results */
+.calc-sep{height:1px;background:var(--border);margin:24px 0}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.result-block{background:var(--black);border:1px solid var(--border);border-radius:3px;padding:14px 16px}
+.result-block.highlight{border-color:var(--purple);background:var(--purple-glow)}
+.result-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.result-val{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;line-height:1}
+.result-val.green{color:var(--green)}
+.result-val.amber{color:var(--amber)}
+.result-val.red{color:var(--red)}
+.result-val.purple{color:var(--purple-text)}
+.verdict{border-radius:3px;padding:14px 16px;border:1px solid var(--border);font-family:var(--mono);font-size:13px;line-height:1.6;display:none;margin-top:4px}
+
+/* SLTP */
+.sltp-toggle{width:100%;margin-top:16px;padding:10px;background:none;border:1px solid var(--border2);border-radius:3px;color:var(--muted2);font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer;transition:all .15s;text-transform:uppercase}
+.sltp-toggle:hover{color:var(--text)}
+.sltp-section{margin-top:20px;display:none}
+.sltp-hdr{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.sltp-hdr span{flex:1;height:1px;background:var(--border);display:block}
+.formula-note{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:10px;line-height:1.6;letter-spacing:.04em}
+
+/* Gate */
+.gate-card{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:32px;position:relative;overflow:hidden}
+.gate-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple-dim),transparent)}
+.gate-title{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.08em;color:#fff;margin-bottom:8px}
+.gate-sub{font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:20px}
+.gate-row{display:flex;gap:8px}
+.gate-input{flex:1;background:var(--black);border:1px solid var(--border2);border-radius:3px;padding:12px 16px;color:#fff;font-family:var(--sans);font-size:14px;outline:none;transition:border-color .2s}
+.gate-input::placeholder{color:var(--muted)}
+.gate-input:focus{border-color:var(--purple)}
+.gate-input.error{border-color:var(--red)}
+.gate-btn{padding:12px 20px;background:var(--purple);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:opacity .15s,transform .1s;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.gate-btn:hover{opacity:.88}
+.gate-btn:active{transform:scale(.98)}
+.gate-btn:disabled{opacity:.4;cursor:not-allowed}
+.gate-err{font-family:var(--mono);font-size:10px;color:var(--red);margin-top:6px;display:none;letter-spacing:.06em}
+.gate-note{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;letter-spacing:.06em;margin-top:10px}
+.gate-success{display:none;text-align:center;padding:8px 0}
+.gate-success-icon{font-family:var(--mono);font-size:28px;color:var(--green);margin-bottom:12px}
+.gate-success-title{font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.gate-success-sub{font-size:13px;color:var(--muted2);line-height:1.6}
+.share-row{display:flex;gap:8px;margin-top:12px;justify-content:center}
+.share-btn{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:7px 14px;border:1px solid var(--border2);border-radius:2px;color:var(--muted2);background:none;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
+.share-btn:hover{border-color:var(--purple);color:var(--purple-text)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border2);border-radius:3px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--text);padding:10px 20px;z-index:100;transition:transform .25s ease;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.wrap>*{animation:fadeIn .5s ease both}
+.hero{animation-delay:.05s}
+.mode-pick{animation-delay:.1s}
+.calc-card{animation-delay:.15s}
+.gate-card{animation-delay:.2s}
+
+@media(max-width:480px){
+  .wrap{padding:32px 16px 60px}
+  .calc-card,.gate-card{padding:24px}
+  .result-grid,.two-col{grid-template-columns:1fr}
+  .gate-row{flex-direction:column}
+  .gate-btn{width:100%;padding:14px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<form name="trade-leads" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="email" name="email">
+  <input type="text"  name="market">
+  <input type="text"  name="account_size">
+  <input type="text"  name="risk_pct">
+  <input type="text"  name="risk_amount">
+  <input type="text"  name="position_size">
+  <input type="text"  name="bot-field">
+</form>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="hero-eyebrow">Position Size Calculator</div>
+    <h1>Stop <span>guessing</span><br>your position size.</h1>
+    <p class="hero-sub">Enter your trade. Get the exact position size in seconds. No signup needed to calculate.</p>
+  </section>
+
+  <div class="mode-pick" id="modePick">
+    <button class="mode-btn" id="btnCrypto" onclick="setMode('crypto')">
+      <span class="mode-icon">₿</span>
+      <span class="mode-label">CRYPTO</span>
+      <span class="mode-sub">Bitcoin, Ethereum, altcoins. Risk % based.</span>
+    </button>
+    <button class="mode-btn" id="btnForex" onclick="setMode('forex')">
+      <span class="mode-icon">$€</span>
+      <span class="mode-label">FOREX</span>
+      <span class="mode-sub">EUR/USD, GBP/JPY and more. Pip based.</span>
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="calc-card">
+
+    <div class="field-wrap">
+      <div class="calc-label">Account Balance <span>Your total trading capital</span></div>
+      <div class="calc-input-wrap" id="balanceWrap">
+        <span class="calc-pfx">$</span>
+        <input class="calc-input" id="balance" type="number" min="0" step="0.01" placeholder="10000.00" oninput="onBalanceInput()" inputmode="decimal">
+      </div>
+      <div class="field-error" id="balanceErr">Enter a positive account balance</div>
+    </div>
+
+    <div class="slider-row">
+      <div class="calc-label">Risk per Trade</div>
+      <div class="slider-val" id="riskVal">1.0<span style="font-size:18px;opacity:.4">%</span></div>
+      <div class="slider-zone" id="riskZone" style="color:var(--green)">● CONSERVATIVE</div>
+      <input class="risk-slider" id="riskSlider" type="range" min="0.1" max="50" step="0.1" value="1" oninput="onSlider()">
+      <div class="risk-ticks"><span>0.1%</span><span>10%</span><span>25%</span><span>50%</span></div>
+    </div>
+
+    <div id="forexFields" style="display:none">
+      <div class="two-col">
+        <div class="field-wrap" style="margin-bottom:0">
+          <div class="calc-label">Stop Loss <span>in pips</span></div>
+          <div class="calc-input-wrap" id="slPipsWrap">
+            <input class="calc-input" id="slPips" type="number" step="0.1" placeholder="30" oninput="calculate()" inputmode="decimal" style="font-size:15px">
+            <span class="calc-sfx">pips</span>
+          </div>
+          <div class="field-error" id="slPipsErr">Must be &gt; 0</div>
+        </div>
+        <div class="field-wrap" style="margin-bottom:0">
+          <div class="calc-label">Pip Value <span>$ per lot</span></div>
+          <div class="calc-input-wrap" id="pipValWrap">
+            <span class="calc-pfx">$</span>
+            <input class="calc-input" id="pipVal" type="number" step="0.01" placeholder="10" oninput="calculate()" inputmode="decimal" style="font-size:15px">
+          </div>
+          <div class="field-error" id="pipValErr">Must be &gt; 0</div>
+        </div>
+      </div>
+      <p style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;margin-bottom:20px;letter-spacing:.04em">EUR/USD = $10 · GBP/USD = $10 · USD/JPY ≈ $9.09 · Gold (XAU) ≈ $10</p>
+    </div>
+
+    <div class="calc-sep"></div>
+
+    <div class="result-grid">
+      <div class="result-block highlight">
+        <div class="result-lbl">Risk amount</div>
+        <div class="result-val green" id="riskUsd">$—</div>
+      </div>
+      <div class="result-block highlight">
+        <div class="result-lbl" id="posSizeLbl">Position size</div>
+        <div class="result-val purple" id="posSize">—</div>
+      </div>
+      <div class="result-block">
+        <div class="result-lbl">Stays in account</div>
+        <div class="result-val" id="safeAmt">$—</div>
+      </div>
+      <div class="result-block">
+        <div class="result-lbl">Risk grade</div>
+        <div class="result-val" id="riskGrade">—</div>
+      </div>
+    </div>
+
+    <div class="verdict" id="verdict"></div>
+
+    <div id="sltpSection" class="sltp-section">
+      <div class="calc-sep"></div>
+      <div class="sltp-hdr">Entry / SL / TP <span></span></div>
+      <div class="two-col">
+        <div class="field-wrap" style="margin-bottom:0">
+          <div class="calc-label">Entry price</div>
+          <div class="calc-input-wrap" id="entryWrap">
+            <input class="calc-input" id="entry" type="number" step="0.000001" placeholder="65000" oninput="onSltpInput()" style="font-size:15px" inputmode="decimal">
+          </div>
+          <div class="field-error" id="entryErr">Must be &gt; 0</div>
+        </div>
+        <div class="field-wrap" style="margin-bottom:0">
+          <div class="calc-label" style="color:var(--red)">Stop loss</div>
+          <div class="calc-input-wrap" id="slWrap" style="border-color:rgba(239,68,68,.25)">
+            <input class="calc-input" id="sl" type="number" step="0.000001" placeholder="63500" oninput="onSltpInput()" style="font-size:15px" inputmode="decimal">
+          </div>
+          <div class="field-error" id="slErr">Must differ from entry</div>
+        </div>
+        <div class="field-wrap" style="margin-bottom:0">
+          <div class="calc-label" style="color:var(--green)">Take profit</div>
+          <div class="calc-input-wrap" id="tpWrap" style="border-color:rgba(16,185,129,.25)">
+            <input class="calc-input" id="tp" type="number" step="0.000001" placeholder="68000" oninput="onSltpInput()" style="font-size:15px" inputmode="decimal">
+          </div>
+          <div class="field-error" id="tpErr">TP must be on profit side</div>
+        </div>
+        <div class="result-block" style="display:flex;flex-direction:column;justify-content:center;min-height:68px">
+          <div class="result-lbl">Risk / Reward</div>
+          <div class="result-val" id="rrVal" style="font-size:18px">—</div>
+        </div>
+      </div>
+      <p class="formula-note">POSITION SIZE = RISK $ ÷ |ENTRY − STOP LOSS| · OUTPUT IN ASSET UNITS</p>
+    </div>
+
+    <button class="sltp-toggle" id="sltpBtn" onclick="toggleSltp()" style="display:none">+ Add Entry / SL / TP for position size &amp; R:R</button>
+
+  </div>
+
+  <div class="gate-card" id="gateCard">
+    <div class="gate-title">// GET NOTIFIED WHEN WE LAUNCH</div>
+    <p class="gate-sub">Full platform coming soon — trade journal, performance dashboard, AI analysis, and more. Drop your email to get early access.</p>
+    <div id="gateForm">
+      <p style="display:none"><label>Leave blank: <input type="text" name="bot-field" id="botField" tabindex="-1" autocomplete="off"></label></p>
+      <div class="gate-row">
+        <input class="gate-input" id="gateEmail" name="email" type="email" placeholder="Email address" autocomplete="email" inputmode="email">
+        <button class="gate-btn" id="gateBtn" onclick="submitGate()">NOTIFY ME →</button>
+      </div>
+      <div class="gate-err" id="gateErr">Please enter a valid email address</div>
+      <p class="gate-note">NO SPAM · UNSUBSCRIBE ANYTIME</p>
+    </div>
+    <div class="gate-success" id="gateSuccess">
+      <div class="gate-success-icon">[✓]</div>
+      <div class="gate-success-title">You're on the list.</div>
+      <p class="gate-success-sub">We'll let you know the moment we launch. Meanwhile, share this calculator.</p>
+      <p style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:16px;letter-spacing:.06em">SHARE YOUR RESULT</p>
+      <div class="share-row">
+        <a class="share-btn" id="shareX" href="#" target="_blank" rel="noopener noreferrer">POST TO X →</a>
+        <button class="share-btn" id="shareCopy" onclick="copyResult(this)">COPY RESULT</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var mode = null;
+  var sltpOpen = false;
+  var lastResult = null;
+
+  function toast(msg, ms){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, ms || 2500);
+  }
+
+  function fmt(n){
+    if(isNaN(n) || n == null) return '—';
+    return '$' + parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function fmtUnits(n){
+    if(!n || isNaN(n)) return '—';
+    var abs = Math.abs(n);
+    if(abs >= 1000) return parseFloat(n).toFixed(2) + ' units';
+    if(abs >= 1)    return parseFloat(n).toFixed(4) + ' units';
+    return parseFloat(n).toFixed(6) + ' units';
+  }
+  function fmtLots(n){
+    if(!n || isNaN(n)) return '—';
+    return parseFloat(n).toFixed(4) + ' lots';
+  }
+  function setErr(wrapId, errId, show){
+    var w = document.getElementById(wrapId);
+    var e = document.getElementById(errId);
+    if(w) w.classList.toggle('error', show);
+    if(e) e.style.display = show ? 'block' : 'none';
+  }
+
+  window.setMode = function(m){
+    mode = m;
+    document.getElementById('btnCrypto').classList.toggle('active', m === 'crypto');
+    document.getElementById('btnForex').classList.toggle('active',  m === 'forex');
+    document.getElementById('forexFields').style.display = m === 'forex' ? 'block' : 'none';
+    document.getElementById('sltpBtn').style.display     = m === 'crypto' ? 'block' : 'none';
+    if(m === 'forex' && sltpOpen){
+      sltpOpen = false;
+      document.getElementById('sltpSection').style.display = 'none';
+      document.getElementById('sltpBtn').textContent = '+ Add Entry / SL / TP for position size & R:R';
+    }
+    clearResults();
+    calculate();
+  };
+
+  window.onSlider = function(){
+    var v = parseFloat(document.getElementById('riskSlider').value);
+    document.getElementById('riskVal').innerHTML = v.toFixed(1) + '<span style="font-size:18px;opacity:.4">%</span>';
+
+    var zone, color;
+    if(v <= 1)       { zone = '● CONSERVATIVE — the textbook says well done'; color = 'var(--green)'; }
+    else if(v <= 2)  { zone = '● MODERATE — professionals live here'; color = 'var(--green)'; }
+    else if(v <= 5)  { zone = '◆ AGGRESSIVE — your account can feel this'; color = 'var(--amber)'; }
+    else if(v <= 10) { zone = '▲ SPICY — your broker loves you'; color = 'var(--amber)'; }
+    else if(v <= 20) { zone = '☠ RECKLESS — have you met margin call?'; color = 'var(--red)'; }
+    else if(v <= 35) { zone = '☠ SELF-DESTRUCTION — this is not a trading plan'; color = 'var(--red)'; }
+    else             { zone = '☠ SEND IT — at least you\'ll have a story to tell'; color = 'var(--red)'; }
+
+    document.getElementById('riskZone').textContent = zone;
+    document.getElementById('riskZone').style.color = color;
+
+    var pct = ((v - 0.1) / (50 - 0.1)) * 100;
+    var trackColor = v <= 2 ? 'var(--green)' : v <= 5 ? 'var(--amber)' : 'var(--red)';
+    document.getElementById('riskSlider').style.background =
+      'linear-gradient(90deg,' + trackColor + ' ' + pct + '%, var(--border2) ' + pct + '%)';
+    calculate();
+  };
+  onSlider();
+
+  window.onBalanceInput = function(){
+    var val = parseFloat(document.getElementById('balance').value);
+    if(!isNaN(val) && val <= 0) setErr('balanceWrap','balanceErr',true);
+    else setErr('balanceWrap','balanceErr',false);
+    calculate();
+  };
+
+  window.toggleSltp = function(){
+    sltpOpen = !sltpOpen;
+    document.getElementById('sltpSection').style.display = sltpOpen ? 'block' : 'none';
+    document.getElementById('sltpBtn').textContent = sltpOpen
+      ? '− Hide Entry / SL / TP'
+      : '+ Add Entry / SL / TP for position size & R:R';
+    calculate();
+  };
+
+  window.onSltpInput = function(){
+    ['entryWrap','slWrap','tpWrap'].forEach(function(id){ document.getElementById(id).classList.remove('error'); });
+    ['entryErr','slErr','tpErr'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+    calculate();
+  };
+
+  function gradeRisk(p){
+    if(p <= 1)  return {g:'A', color:'var(--green)'};
+    if(p <= 2)  return {g:'B', color:'var(--green)'};
+    if(p <= 5)  return {g:'C', color:'var(--amber)'};
+    if(p <= 10) return {g:'D', color:'var(--amber)'};
+    if(p <= 20) return {g:'E', color:'var(--red)'};
+    return {g:'F', color:'var(--red)'};
+  }
+  function gradeRR(rr){
+    if(rr >= 3)   return {g:'A', color:'var(--green)'};
+    if(rr >= 2)   return {g:'B', color:'var(--green)'};
+    if(rr >= 1.5) return {g:'C', color:'var(--amber)'};
+    if(rr >= 1)   return {g:'D', color:'var(--amber)'};
+    return {g:'F', color:'var(--red)'};
+  }
+
+  // Witty comments keyed by risk % band
+  function getVerdict(p){
+    if(p <= 0.5)  return { text: 'Under 0.5% risk? Warren Buffett would nod approvingly. Your account might outlive you.', bg:'rgba(16,185,129,.05)' };
+    if(p <= 1)    return { text: 'Under 1% risk per trade — you might actually survive this game long-term. Boring is beautiful.', bg:'rgba(16,185,129,.05)' };
+    if(p <= 2)    return { text: 'Solid. 1–2% is the professional standard. You\'re in good company — the kind that still has money next month.', bg:'rgba(16,185,129,.05)' };
+    if(p <= 3)    return { text: 'Decent. A little spicy. One bad streak stings but you live to fight another day. Probably.', bg:'rgba(245,158,11,.05)' };
+    if(p <= 5)    return { text: 'This is where "I\'ll just make it back" starts. Your account can take the hit. Your emotions might not.', bg:'rgba(245,158,11,.05)' };
+    if(p <= 8)    return { text: 'A 5-loss streak at this level cuts your account in half. Imagine explaining that to yourself.', bg:'rgba(245,158,11,.05)' };
+    if(p <= 10)   return { text: 'Bold move, Cotton. Your broker is smiling. Your future self is writing an angry journal entry.', bg:'rgba(245,158,11,.05)' };
+    if(p <= 15)   return { text: 'This is how accounts become cautionary tales on trading forums. You\'re three bad trades from a screenshot.', bg:'rgba(239,68,68,.05)' };
+    if(p <= 20)   return { text: 'Let\'s be real: this isn\'t risk management, this is a coin flip with extra steps. The house always wins.', bg:'rgba(239,68,68,.05)' };
+    if(p <= 25)   return { text: 'Margin call is not a suggestion — it\'s a promise. At 25% risk, it\'s also not far away.', bg:'rgba(239,68,68,.05)' };
+    if(p <= 30)   return { text: 'Lose twice in a row and you\'re down 51%. You\'re not trading anymore. You\'re hoping.', bg:'rgba(239,68,68,.05)' };
+    if(p <= 40)   return { text: 'Four trades could zero your account. That\'s not a strategy, that\'s a speedrun.', bg:'rgba(239,68,68,.05)' };
+    if(p <= 45)   return { text: 'At this point just go to a casino. The drinks are free and at least there\'s ambiance.', bg:'rgba(239,68,68,.05)' };
+    return { text: '50% risk. You\'re not trading, you\'re flipping. If this works you\'ll call yourself a genius. It won\'t.', bg:'rgba(239,68,68,.05)' };
+  }
+
+  function clearResults(){
+    ['riskUsd','posSize','safeAmt'].forEach(function(id){ document.getElementById(id).textContent = id === 'riskUsd' || id === 'safeAmt' ? '$—' : '—'; });
+    document.getElementById('riskGrade').textContent = '—';
+    document.getElementById('verdict').style.display = 'none';
+    document.getElementById('rrVal').textContent = '—';
+    lastResult = null;
+  }
+
+  window.calculate = function(){
+    if(!mode){ clearResults(); return; }
+    var bal  = parseFloat(document.getElementById('balance').value);
+    var risk = parseFloat(document.getElementById('riskSlider').value);
+    if(isNaN(bal) || bal <= 0){ clearResults(); return; }
+
+    var riskUsd = (bal * risk) / 100;
+    var safe    = bal - riskUsd;
+    var gr      = gradeRisk(risk);
+    var vd      = getVerdict(risk);
+
+    document.getElementById('riskUsd').textContent = fmt(riskUsd);
+    document.getElementById('safeAmt').textContent = fmt(safe);
+    document.getElementById('riskGrade').innerHTML = '<span style="color:' + gr.color + '">' + gr.g + '</span>';
+
+    var posSzDisplay = '—';
+
+    if(mode === 'forex'){
+      var slP = parseFloat(document.getElementById('slPips').value);
+      var pv  = parseFloat(document.getElementById('pipVal').value);
+      var slpOk = !isNaN(slP) && slP > 0;
+      var pvOk  = !isNaN(pv)  && pv  > 0;
+      setErr('slPipsWrap','slPipsErr', document.getElementById('slPips').value !== '' && !slpOk);
+      setErr('pipValWrap','pipValErr', document.getElementById('pipVal').value  !== '' && !pvOk);
+      posSzDisplay = (slpOk && pvOk) ? fmtLots(riskUsd / (slP * pv)) : 'Enter SL & pip value';
+    } else {
+      if(sltpOpen){
+        var entry = parseFloat(document.getElementById('entry').value);
+        var sl    = parseFloat(document.getElementById('sl').value);
+        var tp    = parseFloat(document.getElementById('tp').value);
+        if(!isNaN(entry) && entry > 0 && !isNaN(sl) && sl > 0){
+          if(Math.abs(entry - sl) < 0.000001){ setErr('slWrap','slErr',true); posSzDisplay = 'SL = entry?'; }
+          else {
+            var slDist = Math.abs(entry - sl);
+            posSzDisplay = fmtUnits(riskUsd / slDist);
+            if(!isNaN(tp) && tp > 0){
+              var isLong = sl < entry;
+              if(!(isLong ? tp > entry : tp < entry)){ setErr('tpWrap','tpErr',true); document.getElementById('rrVal').textContent = '—'; }
+              else {
+                var rr = Math.abs(tp - entry) / slDist;
+                var rrG = gradeRR(rr);
+                document.getElementById('rrVal').innerHTML = '<span style="color:' + rrG.color + '">' + rr.toFixed(2) + 'R (' + rrG.g + ')</span>';
+              }
+            } else { document.getElementById('rrVal').textContent = '—'; }
+          }
+        } else { posSzDisplay = 'Enter entry & SL'; document.getElementById('rrVal').textContent = '—'; }
+      } else {
+        posSzDisplay = 'Add SL for exact size';
+        document.getElementById('rrVal').textContent = '—';
+      }
+    }
+
+    document.getElementById('posSize').textContent = posSzDisplay;
+
+    var vEl = document.getElementById('verdict');
+    vEl.textContent = vd.text;
+    vEl.style.display = 'block';
+    vEl.style.borderColor = gr.color + '44';
+    vEl.style.color = gr.color;
+    vEl.style.background = vd.bg;
+
+    lastResult = { bal:bal, risk:risk, riskUsd:riskUsd, posSize:posSzDisplay, grade:gr.g, mode:mode };
+  };
+
+  window.submitGate = function(){
+    var email = document.getElementById('gateEmail').value.trim();
+    var btn   = document.getElementById('gateBtn');
+    var errEl = document.getElementById('gateErr');
+    document.getElementById('gateEmail').classList.remove('error');
+    errEl.style.display = 'none';
+
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      document.getElementById('gateEmail').classList.add('error');
+      errEl.textContent = 'Please enter a valid email address';
+      errEl.style.display = 'block';
+      document.getElementById('gateEmail').focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'SENDING…';
+
+    var r = lastResult || {};
+    fetch('/.netlify/functions/signup', {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email:         email,
+        market:        mode || 'unknown',
+        account_size:  String(r.bal || ''),
+        risk_pct:      String(r.risk || ''),
+        risk_amount:   r.riskUsd ? r.riskUsd.toFixed(2) : '',
+        position_size: r.posSize || '',
+        'bot-field':   document.getElementById('botField').value
+      })
+    })
+    .then(function(res){
+      if(res.ok){ return res.json(); }
+      return res.json().then(function(d){ throw new Error(d.error || res.status); });
+    })
+    .then(function(){ showSuccess(); })
+    .catch(function(err){
+      console.error('Signup error:', err);
+      errEl.textContent = 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+    })
+    .finally(function(){
+      btn.disabled = false;
+      btn.textContent = 'NOTIFY ME →';
+    });
+  };
+
+  function showSuccess(){
+    document.getElementById('gateForm').style.display = 'none';
+    document.getElementById('gateSuccess').style.display = 'block';
+    var pageUrl = window.location.href.split('?')[0].split('#')[0];
+    var r = lastResult;
+    var shareText = r
+      ? 'Just calculated my ' + (r.mode==='forex'?'forex':'crypto') + ' position size: ' + r.posSize + ', risking $' + r.riskUsd.toFixed(2) + ' (' + r.risk.toFixed(1) + '% — grade ' + r.grade + '). Try it: ' + pageUrl
+      : 'Free position size calculator for crypto & forex traders: ' + pageUrl;
+    document.getElementById('shareX').href = 'https://x.com/intent/tweet?text=' + encodeURIComponent(shareText);
+    document.getElementById('shareCopy')._shareText = shareText;
+  }
+
+  window.copyResult = function(btn){
+    var text = btn._shareText || window.location.href;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text)
+        .then(function(){ var o=btn.textContent; btn.textContent='COPIED ✓'; setTimeout(function(){btn.textContent=o;},2000); })
+        .catch(function(){ fallbackCopy(text,btn); });
+    } else { fallbackCopy(text,btn); }
+  };
+  function fallbackCopy(text,btn){
+    var ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); var o=btn.textContent; btn.textContent='COPIED ✓'; setTimeout(function(){btn.textContent=o;},2000); }
+    catch(e){ toast('Copy failed — please copy the URL manually.'); }
+    document.body.removeChild(ta);
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && document.activeElement && document.activeElement.id==='gateEmail') window.submitGate();
+  });
+
+})();
+</script>
+</body>
+</html>
