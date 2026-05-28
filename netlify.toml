@@ -7,13 +7,13 @@
 
 [[headers]]
   for = "/*"
-[headers.values]
+  [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
 
 [[headers]]
   for = "*.html"
-[headers.values]
+  [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
 [[redirects]]
