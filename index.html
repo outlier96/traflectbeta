@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignalEdge — Free Position Size Calculator</title>
-    <meta name="description" content="Know your exact risk before you enter. Free position sizer for crypto and forex traders. Get early access to SignalEdge.">
+    <title>beta — Free Position Size Calculator</title>
+    <meta name="description" content="Know your exact risk before you enter. Free position sizer for crypto and forex traders. Get early access to beta.">
     <style>
         :root {
             --bg-color: #0b0e11;
             --card-bg: #151a21;
-            --accent-color: #f0b90b;
+            --accent-color: #7c3aed;
             --text-main: #eaecef;
             --text-muted: #848e9c;
             --border-color: #2b3139;
@@ -29,9 +29,9 @@
         .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
         .brand-mark { width: 32px; height: 32px; background: var(--accent-color);
             border-radius: 7px; display: flex; align-items: center; justify-content: center;
-            font-weight: 800; color: #000; font-size: 18px; }
+            font-weight: 800; color: #fff; font-size: 18px; }
         .brand-name { font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-        .brand-badge { font-size: 10px; font-weight: 600; background: rgba(240,185,11,0.15);
+        .brand-badge { font-size: 10px; font-weight: 600; background: rgba(124,58,237,0.15);
             color: var(--accent-color); padding: 3px 8px; border-radius: 20px; margin-left: auto; letter-spacing: 0.04em; }
         .header { margin-bottom: 24px; }
         .header h1 { font-size: 22px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
@@ -41,7 +41,7 @@
             border-radius: 8px; padding: 16px 12px; color: var(--text-main); cursor: pointer;
             transition: all 0.2s ease; text-align: center; }
         .market-btn:hover { border-color: var(--text-muted); }
-        .market-btn.active { border-color: var(--accent-color); background-color: rgba(240, 185, 11, 0.1); }
+        .market-btn.active { border-color: var(--accent-color); background-color: rgba(124, 58, 237, 0.1); }
         .market-btn .mkt-title { font-size: 15px; font-weight: 600; display: block; }
         .market-btn.active .mkt-title { color: var(--accent-color); }
         .market-btn .mkt-hint { font-size: 11px; color: var(--text-muted); display: block; margin-top: 3px; }
@@ -64,12 +64,12 @@
         .gate-note span.lock { color: var(--accent-color); font-size: 15px; }
         .error-msg { display: none; font-size: 13px; color: #fff; background: rgba(239,68,68,0.15);
             border: 1px solid rgba(239,68,68,0.4); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
-        .warn-msg { display: none; font-size: 13px; color: var(--accent-color); background: rgba(240,185,11,0.1);
-            border: 1px solid rgba(240,185,11,0.3); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
-        .submit-btn { width: 100%; background-color: var(--accent-color); color: #000; border: none;
+        .warn-msg { display: none; font-size: 13px; color: var(--accent-color); background: rgba(124,58,237,0.1);
+            border: 1px solid rgba(124,58,237,0.3); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
+        .submit-btn { width: 100%; background-color: var(--accent-color); color: #fff; border: none;
             border-radius: 6px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
         .submit-btn:hover { opacity: 0.9; }
-        .results-box { display: none; background-color: rgba(240, 185, 11, 0.05);
+        .results-box { display: none; background-color: rgba(124, 58, 237, 0.05);
             border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px; }
         .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
@@ -99,7 +99,7 @@
     <div class="container">
         <div class="brand">
             <div class="brand-mark">S</div>
-            <span class="brand-name">SignalEdge</span>
+            <span class="brand-name">beta</span>
             <span class="brand-badge">Private Beta</span>
         </div>
 
@@ -166,7 +166,7 @@
 
             <div class="gate-note">
                 <span class="lock">&#128274;</span>
-                <span>Your results are free. Enter your email to unlock them and claim early beta access to SignalEdge.</span>
+                <span>Your results are free. Enter your email to unlock them and claim early access to the beta.</span>
             </div>
 
             <div class="form-row">
@@ -185,6 +185,9 @@
             </button>
 
             <div class="results-box" id="results-box">
+                <div id="confirm-banner" style="display:none; font-size:13px; color:var(--green); background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.35); border-radius:6px; padding:9px 12px; margin-bottom:16px;">
+                    &#9989; You're on the list, <span id="confirm-name"></span> — beta invite heading to <span id="confirm-email" style="color:#fff;"></span>.
+                </div>
                 <div class="results-grid">
                     <div>
                         <div class="metric-label">Position Size</div>
@@ -220,7 +223,7 @@
                 </div>
                 <div class="cta">
                     <div class="cta-text">
-                        <strong>Track this trade in SignalEdge</strong>
+                        <strong>Track this trade in beta</strong>
                         Log entries, review patterns, grade every setup &mdash; free in beta.
                     </div>
                     <a href="#" class="cta-btn">Get Access</a>
@@ -403,14 +406,20 @@
                 'takeprofit': (tp === null ? '' : tp), 'bot-field': ''
             }).toString();
 
+            var submitBtn = document.getElementById('submit-btn');
             fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: payload })
             .then(function () {
-                document.getElementById('done-name').textContent = name;
-                document.getElementById('done-email').textContent = email;
-                document.getElementById('calc-section').style.display = 'none';
-                document.getElementById('success-section').style.display = 'block';
+                document.getElementById('confirm-name').textContent = name;
+                document.getElementById('confirm-email').textContent = email;
+                document.getElementById('confirm-banner').style.display = 'block';
+                submitBtn.innerHTML = '&#9989; Saved — check your email';
+                submitBtn.style.background = 'var(--green)';
+                submitBtn.disabled = true;
             })
-            .catch(function (err) { console.error('Submission error:', err); });
+            .catch(function (err) {
+                console.error('Submission error:', err);
+                showWarning('Your result is ready, but we could not save your signup. Please try again.');
+            });
         }
     </script>
 </body>
