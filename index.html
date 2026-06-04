@@ -1,579 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TRAFLECT // POSITION CALCULATOR</title>
-<meta name="description" content="Precision position sizing infrastructure for digital asset markets.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#000000;
-  --surface:#080808;
-  --surface-hover:#111111;
-  --border:#1a1a1a;
-  --border-focus:#333333;
-  --neon-green:#00ff66;
-  --neon-amber:#ffaa00;
-  --neon-red:#ff3333;
-  --text-main:#ffffff;
-  --text-muted:#555555;
-  --text-dim:#888888;
-  --mono:'Space Mono',monospace;
-}
-body{
-  background:var(--bg);
-  color:var(--text-main);
-  font-family:var(--mono);
-  font-size:12px;
-  letter-spacing:-0.01em;
-  line-height:1.5;
-  min-height:100vh;
-  padding:40px 20px;
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
-  background-size:48px 48px;opacity:0.4;pointer-events:none;z-index:0;
-}
-.app-container{position:relative;z-index:1;max-width:480px;margin:0 auto}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalEdge — Free Position Size Calculator</title>
+    <meta name="description" content="Know your exact risk before you enter. Free position sizer for crypto and forex traders. Get early access to SignalEdge.">
+    <style>
+        :root {
+            --bg-color: #0b0e11;
+            --card-bg: #151a21;
+            --accent-color: #f0b90b;
+            --text-main: #eaecef;
+            --text-muted: #848e9c;
+            --border-color: #2b3139;
+            --green: #22c55e;
+            --lime: #84cc16;
+            --orange: #f97316;
+            --red: #ef4444;
+        }
 
-.brand-header{margin-bottom:32px;border-left:2px solid var(--text-main);padding-left:16px}
-.brand-title{font-size:18px;font-weight:700;letter-spacing:-0.03em;text-transform:uppercase}
-.brand-subtitle{color:var(--text-dim);font-size:11px;margin-top:4px}
+        * { box-sizing: border-box; margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px}
-.mode-tab{background:var(--bg);border:none;color:var(--text-muted);padding:14px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all 0.1s}
-.mode-tab:hover{background:var(--surface-hover);color:var(--text-main)}
-.mode-tab.active{background:var(--surface);color:var(--neon-green)}
+        body { background-color: var(--bg-color); color: var(--text-main);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px; }
 
-.ui-block{background:var(--surface);border:1px solid var(--border);padding:24px;margin-bottom:20px;position:relative}
-.ui-block-title{font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--text-muted);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.ui-block-title::after{content:'';flex:1;height:1px;background:var(--border)}
+        .container { background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; width: 100%; max-width: 480px; padding: 32px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
 
-.input-group{margin-bottom:20px}
-.input-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase}
-.input-meta span:last-child{margin-left:auto;color:var(--text-muted)}
-.input-field-wrap{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);position:relative}
-.input-field-wrap:focus-within{border-color:var(--border-focus)}
-.input-field-wrap.error{border-color:var(--neon-red)}
-.input-addon{padding:0 14px;color:var(--text-muted);user-select:none;font-size:11px}
-.input-core{flex:1;background:transparent;border:none;outline:none;color:var(--text-main);font-family:var(--mono);font-size:14px;font-weight:700;padding:12px 14px}
-.input-core::placeholder{color:var(--text-muted);font-weight:400;font-size:12px}
-.input-core::-webkit-outer-spin-button,.input-core::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.input-core[type=number]{-moz-appearance:textfield}
-.err-lbl{font-size:10px;color:var(--neon-red);margin-top:4px;display:none}
+        .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+        .brand-mark { width: 32px; height: 32px; background: var(--accent-color);
+            border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            font-weight: 800; color: #000; font-size: 18px; }
+        .brand-name { font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
+            text-transform: uppercase; }
+        .brand-badge { font-size: 10px; font-weight: 600; background: rgba(240,185,11,0.15);
+            color: var(--accent-color); padding: 3px 8px; border-radius: 20px;
+            margin-left: auto; letter-spacing: 0.04em; }
 
-.slider-container{margin-bottom:24px;background:var(--bg);border:1px solid var(--border);padding:16px}
-.slider-data{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
-.slider-display{font-size:24px;font-weight:700;color:var(--text-main)}
-.slider-status{font-size:10px;font-weight:700;letter-spacing:0.05em}
-.native-slider{width:100%;-webkit-appearance:none;height:2px;background:var(--border);outline:none;cursor:pointer}
-.native-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--text-main);cursor:pointer;border:1px solid var(--bg)}
-.native-slider::-moz-range-thumb{width:12px;height:12px;background:var(--text-main);cursor:pointer;border:1px solid var(--bg)}
+        .header { margin-bottom: 24px; }
+        .header h1 { font-size: 22px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
+        .header p { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
 
-.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.metric-box{background:var(--bg);border:1px solid var(--border);padding:14px}
-.metric-box.primary{border-color:var(--border-focus)}
-.metric-title{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
-.metric-output{font-size:16px;font-weight:700;color:var(--text-main)}
-.metric-output.highlight{color:var(--neon-green)}
+        .market-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .market-btn { background: var(--bg-color); border: 2px solid var(--border-color);
+            border-radius: 8px; padding: 16px 12px; color: var(--text-main); cursor: pointer;
+            transition: all 0.2s ease; text-align: center; }
+        .market-btn:hover { border-color: var(--text-muted); }
+        .market-btn.active { border-color: var(--accent-color); background-color: rgba(240, 185, 11, 0.1); }
+        .market-btn .mkt-title { font-size: 15px; font-weight: 600; display: block; }
+        .market-btn.active .mkt-title { color: var(--accent-color); }
+        .market-btn .mkt-hint { font-size: 11px; color: var(--text-muted); display: block; margin-top: 3px; }
 
-.panel-toggle{width:100%;background:transparent;border:1px dashed var(--border);color:var(--text-dim);font-family:var(--mono);font-size:10px;padding:10px;cursor:pointer;text-transform:uppercase;text-align:center;margin-top:8px}
-.panel-toggle:hover{border-color:var(--border-focus);color:var(--text-main)}
-.panel-expandable{margin-top:20px;display:none;border-top:1px dashed var(--border);padding-top:20px}
+        #calc-section { display: none; }
 
-.critique-block{background:var(--bg);border:1px solid var(--border);padding:12px 16px;font-size:11px;color:var(--text-dim);line-height:1.6;display:none;margin-top:12px}
+        .back-btn { background: none; border: none; color: var(--text-muted); font-size: 13px;
+            cursor: pointer; padding: 0; margin-bottom: 16px; }
+        .back-btn:hover { color: var(--text-main); }
 
-.gate-wrapper{border-top:2px solid var(--text-main);padding-top:24px;margin-top:32px}
-.gate-heading{font-size:12px;font-weight:700;letter-spacing:0.05em;margin-bottom:6px;text-transform:uppercase}
-.gate-description{color:var(--text-dim);font-size:11px;margin-bottom:16px;line-height:1.6}
-.gate-form-row{display:flex;gap:1px;background:var(--border);border:1px solid var(--border)}
-.gate-email-input{flex:1;background:var(--bg);border:none;color:var(--text-main);font-family:var(--mono);font-size:12px;padding:14px;outline:none}
-.gate-email-input::placeholder{color:var(--text-muted)}
-.gate-submit-btn{background:var(--text-main);border:none;color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700;padding:0 24px;cursor:pointer;text-transform:uppercase}
-.gate-submit-btn:hover{background:var(--neon-green)}
-.gate-submit-btn:disabled{opacity:0.3;cursor:not-allowed}
-.gate-success-panel{display:none;background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center}
-.gate-success-title{font-size:13px;font-weight:700;color:var(--neon-green);margin-bottom:8px;text-transform:uppercase}
-.share-actions{display:flex;gap:8px;justify-content:center;margin-top:16px}
-.share-link-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-dim);padding:8px 16px;font-family:var(--mono);font-size:10px;text-decoration:none;cursor:pointer;text-transform:uppercase}
-.share-link-btn:hover{border-color:var(--border-focus);color:var(--text-main)}
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600;
+            text-transform: uppercase; margin-bottom: 6px; color: var(--text-muted); letter-spacing: 0.5px; }
+        .form-group input, .form-group select { width: 100%; background-color: var(--bg-color);
+            border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; color: #fff;
+            font-size: 15px; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent-color); }
 
-.system-toast{position:fixed;bottom:24px;right:24px;background:var(--text-main);color:var(--bg);font-family:var(--mono);font-size:10px;font-weight:700;padding:12px 20px;z-index:999;transform:translateY(150%);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1);text-transform:uppercase}
-.system-toast.active{transform:translateY(0)}
+        .divider { height: 1px; background-color: var(--border-color); margin: 24px 0 20px; }
 
-@media(max-width:480px){
-  body{padding:20px 12px}
-  .metrics-grid{grid-template-columns:1fr}
-  .gate-form-row{flex-direction:column}
-  .gate-submit-btn{padding:14px}
-}
-</style>
+        .gate-note { display: flex; gap: 8px; align-items: flex-start; font-size: 13px;
+            color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
+        .gate-note span.lock { color: var(--accent-color); font-size: 15px; }
+
+        .error-msg { display: none; font-size: 13px; color: #fff; background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.4); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
+        .warn-msg { display: none; font-size: 13px; color: var(--accent-color); background: rgba(240,185,11,0.1);
+            border: 1px solid rgba(240,185,11,0.3); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
+
+        .submit-btn { width: 100%; background-color: var(--accent-color); color: #000; border: none;
+            border-radius: 6px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: opacity 0.2s; }
+        .submit-btn:hover { opacity: 0.9; }
+
+        .results-box { display: none; background-color: rgba(240, 185, 11, 0.05);
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px; }
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 4px; }
+        .metric-val { font-size: 24px; font-weight: 700; color: var(--accent-color); }
+        .metric-val.neutral { color: #fff; }
+        .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .grade-wrap { margin-top: 18px; }
+        .grade-head { display: flex; justify-content: space-between; font-size: 11px;
+            text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; }
+        .grade-track { height: 6px; background: var(--bg-color); border-radius: 3px; overflow: hidden; }
+        .grade-fill { height: 6px; border-radius: 3px; width: 0; transition: width 0.7s cubic-bezier(0.22,1,0.36,1); }
+
+        .cta { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color);
+            display: flex; gap: 12px; align-items: center; }
+        .cta-text { flex: 1; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        .cta-text strong { display: block; color: #fff; font-size: 13px; margin-bottom: 2px; }
+        .cta-btn { flex-shrink: 0; background: var(--bg-color); border: 1px solid var(--border-color);
+            color: #fff; border-radius: 6px; padding: 9px 14px; font-size: 13px; font-weight: 600;
+            cursor: pointer; white-space: nowrap; transition: border-color 0.2s; }
+        .cta-btn:hover { border-color: var(--accent-color); }
+
+        .success-screen { display: none; text-align: center; padding: 8px 0; }
+        .success-screen .check { font-size: 40px; margin-bottom: 12px; }
+        .success-screen h2 { font-size: 18px; color: #fff; margin-bottom: 6px; }
+        .success-screen p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+        .success-screen .email-hl { color: var(--accent-color); }
+    </style>
 </head>
 <body>
 
-<form name="trade-leads" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input type="email" name="email">
-  <input type="text"  name="market">
-  <input type="text"  name="account_size">
-  <input type="text"  name="risk_pct">
-  <input type="text"  name="risk_amount">
-  <input type="text"  name="position_size">
-  <input type="text"  name="bot-field">
-</form>
-
-<div class="app-container">
-
-  <header class="brand-header">
-    <div class="brand-title">traflect // beta</div>
-    <div class="brand-subtitle">Risk management & account preservation engine.</div>
-  </header>
-
-  <div class="mode-grid" id="modeContainer">
-    <button class="mode-tab" id="tabCrypto" onclick="changeMode('crypto')">CRYPTO</button>
-    <button class="mode-tab" id="tabForex" onclick="changeMode('forex')">FOREX</button>
-  </div>
-
-  <main class="ui-block">
-    <div class="ui-block-title">Parameters</div>
-
-    <!-- Capital Pool Input -->
-    <div class="input-group">
-      <div class="input-meta">
-        <span>Account Balance</span>
-        <span>USD</span>
-      </div>
-      <div class="input-field-wrap" id="balanceFrame">
-        <span class="input-addon">$</span>
-        <input class="input-core" id="balanceInput" type="number" min="0" step="0.01" placeholder="10000.00" oninput="handleParamChange()" inputmode="decimal">
-      </div>
-      <div class="err-lbl" id="balanceErr">ERROR: Balance must be greater than zero.</div>
-    </div>
-
-    <!-- Risk Slider Module -->
-    <div class="slider-container">
-      <div class="slider-data">
-        <div class="slider-display" id="riskValueDisplay">1.0%</div>
-        <div class="slider-status" id="riskStatusDisplay" style="color:var(--neon-green)">CONSERVATIVE</div>
-      </div>
-      <input class="native-slider" id="riskSliderInput" type="range" min="0.1" max="50" step="0.1" value="1" oninput="handleSliderChange()">
-    </div>
-
-    <!-- Forex Configuration Panel -->
-    <div id="forexConfigurationBlock" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-        <div class="input-group" style="margin-bottom:0">
-          <div class="input-meta"><span>Stop Loss Distance</span></div>
-          <div class="input-field-wrap" id="fxSlFrame">
-            <input class="input-core" id="fxSlInput" type="number" min="0.1" step="0.1" placeholder="30.0" oninput="handleParamChange()" inputmode="decimal">
-            <span class="input-addon">PIPS</span>
-          </div>
-          <div class="err-lbl" id="fxSlErr">ERR: Value must be > 0</div>
+    <div class="container">
+        <div class="brand">
+            <div class="brand-mark">S</div>
+            <span class="brand-name">SignalEdge</span>
+            <span class="brand-badge">Private Beta</span>
         </div>
-        <div class="input-group" style="margin-bottom:0">
-          <div class="input-meta"><span>Pip Value</span></div>
-          <div class="input-field-wrap" id="fxPipValueFrame">
-            <span class="input-addon">$</span>
-            <input class="input-core" id="fxPipValueInput" type="number" min="0.01" step="0.01" placeholder="10.00" oninput="handleParamChange()" inputmode="decimal">
-          </div>
-          <div class="err-lbl" id="fxPipValueErr">ERR: Value must be > 0</div>
+
+        <!-- STEP 1: Market selection -->
+        <div id="market-section">
+            <div class="header">
+                <h1>Know your exact risk before you enter.</h1>
+                <p>Free position sizer for serious traders. Pick your market to get started.</p>
+            </div>
+            <div class="market-selector">
+                <div class="market-btn" id="btn-crypto" onclick="selectMarket('crypto')">
+                    <span class="mkt-title">Crypto</span>
+                    <span class="mkt-hint">BTC, ETH, alts</span>
+                </div>
+                <div class="market-btn" id="btn-forex" onclick="selectMarket('forex')">
+                    <span class="mkt-title">Forex / Prop</span>
+                    <span class="mkt-hint">Majors, JPY, gold</span>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- STEP 2: Calculator + lead capture -->
+        <div id="calc-section">
+            <button type="button" class="back-btn" onclick="goBack()">&larr; Change market</button>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="balance">Account Balance ($)</label>
+                    <input type="number" id="balance" inputmode="decimal" placeholder="10000" min="1" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="risk">Risk %</label>
+                    <input type="number" id="risk" inputmode="decimal" placeholder="1" min="0.01" max="100" step="any">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="entry">Entry Price</label>
+                    <input type="number" id="entry" inputmode="decimal" placeholder="50000" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="stoploss">Stop Loss Price</label>
+                    <input type="number" id="stoploss" inputmode="decimal" placeholder="49500" step="any">
+                </div>
+            </div>
+
+            <div class="form-group" id="pair-type-group" style="display:none;">
+                <label for="pair-type">Pair Type</label>
+                <select id="pair-type">
+                    <option value="major">Major pair (EURUSD, GBPUSD...)</option>
+                    <option value="jpy">JPY pair (USDJPY, EURJPY...)</option>
+                    <option value="gold">Gold (XAUUSD)</option>
+                </select>
+            </div>
+
+            <div id="error-msg" class="error-msg"></div>
+            <div id="warn-msg" class="warn-msg"></div>
+
+            <div class="divider"></div>
+
+            <div class="gate-note">
+                <span class="lock">&#128274;</span>
+                <span>Your results are free. Enter your email to unlock them and claim early beta access to SignalEdge.</span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">First Name</label>
+                    <input type="text" id="name" placeholder="Alex">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" inputmode="email" placeholder="alex@email.com">
+                </div>
+            </div>
+
+            <button type="button" class="submit-btn" id="submit-btn" onclick="calculatePosition()">
+                Calculate My Position Size &rarr;
+            </button>
+
+            <!-- Results -->
+            <div class="results-box" id="results-box">
+                <div class="results-grid">
+                    <div>
+                        <div class="metric-label">Position Size</div>
+                        <div class="metric-val" id="pos-size-output">$0.00</div>
+                        <div class="metric-sub" id="size-sub"></div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Cash at Risk</div>
+                        <div class="metric-val neutral" id="risk-output">$0.00</div>
+                        <div class="metric-sub" id="risk-sub"></div>
+                    </div>
+                </div>
+                <div class="grade-wrap">
+                    <div class="grade-head">
+                        <span>Risk discipline score</span>
+                        <span id="grade-label">&mdash;</span>
+                    </div>
+                    <div class="grade-track">
+                        <div class="grade-fill" id="grade-fill"></div>
+                    </div>
+                </div>
+                <div class="cta">
+                    <div class="cta-text">
+                        <strong>Track this trade in SignalEdge</strong>
+                        Log entries, review patterns, grade every setup &mdash; free in beta.
+                    </div>
+                    <a href="#" class="cta-btn">Get Access</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Confirmation -->
+        <div id="success-section" class="success-screen">
+            <div class="check">&#9989;</div>
+            <h2>You're on the list, <span id="done-name">trader</span>!</h2>
+            <p>We'll send your beta invite to <span class="email-hl" id="done-email"></span>.<br>Watch your inbox over the next few days.</p>
+        </div>
     </div>
 
-    <!-- Crypto Advanced Pricing Coordinates Panel -->
-    <div id="cryptoStructurePanel" class="panel-expandable">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div class="input-group" style="margin-bottom:0">
-          <div class="input-meta"><span>Entry Price</span></div>
-          <div class="input-field-wrap" id="cryptoEntryFrame">
-            <input class="input-core" id="cryptoEntryInput" type="number" min="0.000001" step="0.000001" placeholder="65000.00" oninput="handleParamChange()" inputmode="decimal">
-          </div>
-          <div class="err-lbl" id="cryptoEntryErr">ERR: Entry must be > 0</div>
-        </div>
-        <div class="input-group" style="margin-bottom:0">
-          <div class="input-meta"><span>Stop Loss</span></div>
-          <div class="input-field-wrap" id="cryptoSlFrame">
-            <input class="input-core" id="cryptoSlInput" type="number" min="0.000001" step="0.000001" placeholder="64000.00" oninput="handleParamChange()" inputmode="decimal">
-          </div>
-          <div class="err-lbl" id="cryptoSlErr">ERR: SL must be > 0</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="input-group" style="margin-bottom:0">
-          <div class="input-meta"><span>Take Profit</span></div>
-          <div class="input-field-wrap" id="cryptoTpFrame">
-            <input class="input-core" id="cryptoTpInput" type="number" min="0.000001" step="0.000001" placeholder="68000.00" oninput="handleParamChange()" inputmode="decimal">
-          </div>
-          <div class="err-lbl" id="cryptoTpErr">ERR: Invalid TP direction</div>
-        </div>
-        <div class="metric-box" style="display:flex;flex-direction:column;justify-content:center;padding:10px 14px">
-          <div class="metric-title">Risk Reward Ratio</div>
-          <div class="metric-output" id="outCryptoRr" style="font-size:14px">—</div>
-        </div>
-      </div>
-    </div>
+    <!-- Hidden static form for Netlify build-time detection. -->
+    <!-- Netlify scans the deployed HTML for this; the JS submits to it via fetch. -->
+    <form name="trader-leads" netlify netlify-honeypot="bot-field" hidden>
+        <input type="text" name="name" />
+        <input type="email" name="email" />
+        <input type="text" name="market_type" />
+        <input type="text" name="balance" />
+        <input type="text" name="risk" />
+        <input type="text" name="entry" />
+        <input type="text" name="stoploss" />
+        <input type="text" name="bot-field" />
+    </form>
 
-    <button class="panel-toggle" id="cryptoPanelTriggerBtn" onclick="toggleAdvancedCryptoPanel()">[+] Open execution coordinates matrix</button>
+    <script>
+        let selectedMarket = '';
 
-    <div class="ui-block-title" style="margin-top:24px">Engine Output</div>
+        function selectMarket(market) {
+            selectedMarket = market;
+            document.getElementById('btn-crypto').classList.toggle('active', market === 'crypto');
+            document.getElementById('btn-forex').classList.toggle('active', market === 'forex');
 
-    <!-- Output Analytics Grid -->
-    <div class="metrics-grid">
-      <div class="metric-box primary">
-        <div class="metric-title">Risk Amount</div>
-        <div class="metric-output" id="outRiskUsd">$0.00</div>
-      </div>
-      <div class="metric-box primary">
-        <div class="metric-title" id="outPosSizeLabel">Allocation Size</div>
-        <div class="metric-output highlight" id="outPositionSize">—</div>
-      </div>
-      <div class="metric-box">
-        <div class="metric-title">Capital Retained</div>
-        <div class="metric-output" id="outCapitalRetained">$0.00</div>
-      </div>
-      <div class="metric-box">
-        <div class="metric-title">Risk Matrix Rating</div>
-        <div class="metric-output" id="outRiskGrade">—</div>
-      </div>
-    </div>
-
-    <div class="critique-block" id="systemCritiqueMessage"></div>
-  </main>
-
-  <section class="gate-wrapper">
-    <div id="gateActiveDisplay">
-      <div class="gate-heading">// JOIN THE TRAFLECT INFRASTRUCTURE WORKFLOW</div>
-      <p class="gate-description">We are deploying real-time automated journaling matrices, high-frequency performance diagnostics, and custom risk-modeling pipelines. Lock in your deployment sequence below.</p>
-      <div class="gate-form-row">
-        <input class="gate-email-input" id="subscriberEmailField" type="email" placeholder="PRIME_EMAIL_COORDINATE" autocomplete="email" inputmode="email">
-        <button class="gate-submit-btn" id="subscriberSubmitBtn" onclick="transmitLeadPipeline()">SUBSCRIBE</button>
-      </div>
-      <div class="err-lbl" id="subscriberEmailErr" style="margin-top:6px">INVALID SPECIFICATION: Verify structural layout of email input string.</div>
-    </div>
-
-    <div class="gate-success-panel" id="gateSuccessDisplay">
-      <div class="gate-success-title">TRANSMISSION ACKNOWLEDGED //</div>
-      <p class="gate-description" style="margin-bottom:0">Your record identity has sequence placement. We will dispatch build telemetry alerts directly to your terminal endpoint.</p>
-      <div class="share-actions">
-        <a class="share-link-btn" id="sharePlatformX" href="#" target="_blank" rel="noopener noreferrer">Broadcast Terminal Data</a>
-        <button class="share-link-btn" id="shareDataClipboardBtn" onclick="copyResultMetricsToClipboard(this)">Copy Summary Metrics</button>
-      </div>
-    </div>
-  </section>
-</div>
-
-<div class="system-toast" id="globalToastNotice">System Notification</div>
-
-<script>
-(function(){
-  var currentNetworkMode = 'crypto';
-  var isAdvancedCryptoPanelOpen = false;
-  var telemetrySnapshotObject = null;
-
-  function triggerToastAlert(msg) {
-    var toastElement = document.getElementById('globalToastNotice');
-    toastElement.textContent = msg;
-    toastElement.classList.add('active');
-    setTimeout(function(){ toastElement.classList.remove('active'); }, 2500);
-  }
-
-  function formatCurrencyDisplay(val) {
-    if(isNaN(val) || val == null) return '$0.00';
-    return '$' + parseFloat(val).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-
-  function formatTokenUnits(val) {
-    if(!val || isNaN(val) || !isFinite(val)) return '—';
-    var absVal = Math.abs(val);
-    if(absVal >= 1000) return parseFloat(val).toFixed(2) + ' UNITS';
-    if(absVal >= 1) return parseFloat(val).toFixed(4) + ' UNITS';
-    return parseFloat(val).toFixed(6) + ' UNITS';
-  }
-
-  function toggleErrorStylingFrame(frameId, labelId, activateError) {
-    var frame = document.getElementById(frameId);
-    var label = document.getElementById(labelId);
-    if(frame) frame.classList.toggle('error', activateError);
-    if(label) label.style.display = activateError ? 'block' : 'none';
-  }
-
-  window.changeMode = function(targetMode) {
-    currentNetworkMode = targetMode;
-    document.getElementById('tabCrypto').classList.toggle('active', targetMode === 'crypto');
-    document.getElementById('tabForex').classList.toggle('active', targetMode === 'forex');
-    
-    document.getElementById('forexConfigurationBlock').style.display = targetMode === 'forex' ? 'block' : 'none';
-    document.getElementById('cryptoPanelTriggerBtn').style.display = targetMode === 'crypto' ? 'block' : 'none';
-    
-    if(targetMode === 'forex') {
-      document.getElementById('cryptoStructurePanel').style.display = 'none';
-    } else if(targetMode === 'crypto' && isAdvancedCryptoPanelOpen) {
-      document.getElementById('cryptoStructurePanel').style.display = 'block';
-    }
-    
-    executeRiskEngine();
-  };
-
-  window.handleSliderChange = function() {
-    var riskPct = parseFloat(document.getElementById('riskSliderInput').value);
-    document.getElementById('riskValueDisplay').textContent = riskPct.toFixed(1) + '%';
-
-    var ratingText, ratingColor;
-    if(riskPct <= 1) { ratingText = 'CONSERVATIVE'; ratingColor = 'var(--neon-green)'; }
-    else if(riskPct <= 2) { ratingText = 'MODERATE'; ratingColor = 'var(--neon-green)'; }
-    else if(riskPct <= 5) { ratingText = 'AGGRESSIVE'; ratingColor = 'var(--neon-amber)'; }
-    else if(riskPct <= 10) { ratingText = 'HIGH RISK'; ratingColor = 'var(--neon-amber)'; }
-    else { ratingText = 'ACCOUNT LIQUIDATION PROTOCOL'; ratingColor = 'var(--neon-red)'; }
-
-    var statusDisplay = document.getElementById('riskStatusDisplay');
-    statusDisplay.textContent = ratingText;
-    statusDisplay.style.color = ratingColor;
-
-    executeRiskEngine();
-  };
-
-  window.handleParamChange = function() {
-    executeRiskEngine();
-  };
-
-  window.toggleAdvancedCryptoPanel = function() {
-    isAdvancedCryptoPanelOpen = !isAdvancedCryptoPanelOpen;
-    document.getElementById('cryptoStructurePanel').style.display = isAdvancedCryptoPanelOpen ? 'block' : 'none';
-    document.getElementById('cryptoPanelTriggerBtn').textContent = isAdvancedCryptoPanelOpen 
-      ? '[-] Close execution coordinates matrix' 
-      : '[+] Open execution coordinates matrix';
-    executeRiskEngine();
-  };
-
-  function parseRiskGradeLetter(pct) {
-    if(pct <= 1) return { l: 'ALPHA', c: 'var(--neon-green)' };
-    if(pct <= 2) return { l: 'BETA', c: 'var(--neon-green)' };
-    if(pct <= 5) return { l: 'GAMMA', c: 'var(--neon-amber)' };
-    if(pct <= 10) return { l: 'DELTA', c: 'var(--neon-amber)' };
-    return { l: 'OMEGA', c: 'var(--neon-red)' };
-  }
-
-  function fetchSystemCritiqueMessageText(pct) {
-    if(pct <= 1) return 'TRAFLECT_LOGIC: Execution scaling profile falls inside institutional preservation models.';
-    if(pct <= 2) return 'TRAFLECT_LOGIC: Standard proprietary desk parameter alignment. Variance thresholds normalized.';
-    if(pct <= 5) return 'TRAFLECT_LOGIC: Alert: Drawdown expansion threat index accelerated. Confirm structural edge conditions.';
-    if(pct <= 10) return 'TRAFLECT_LOGIC: High alpha volatility modeling. Five consecutive trailing execution anomalies will breach account thresholds.';
-    return 'TRAFLECT_LOGIC: Terminal hazard vector identified. Risk configuration mimics arbitrary asset distribution gambling.';
-  }
-
-  function clearOutputDisplayElements() {
-    document.getElementById('outRiskUsd').textContent = '$0.00';
-    document.getElementById('outPositionSize').textContent = '—';
-    document.getElementById('outCapitalRetained').textContent = '$0.00';
-    document.getElementById('outRiskGrade').textContent = '—';
-    document.getElementById('systemCritiqueMessage').style.display = 'none';
-    document.getElementById('outCryptoRr').textContent = '—';
-    telemetrySnapshotObject = null;
-  }
-
-  window.executeRiskEngine = function() {
-    var bal = parseFloat(document.getElementById('balanceInput').value);
-    var riskPct = parseFloat(document.getElementById('riskSliderInput').value);
-
-    // Reset error flags initially
-    toggleErrorStylingFrame('balanceFrame', 'balanceErr', false);
-    toggleErrorStylingFrame('fxSlFrame', 'fxSlErr', false);
-    toggleErrorStylingFrame('fxPipValueFrame', 'fxPipValueErr', false);
-    toggleErrorStylingFrame('cryptoEntryFrame', 'cryptoEntryErr', false);
-    toggleErrorStylingFrame('cryptoSlFrame', 'cryptoSlErr', false);
-    toggleErrorStylingFrame('cryptoTpFrame', 'cryptoTpErr', false);
-
-    if(isNaN(bal) || bal <= 0) {
-      if(document.getElementById('balanceInput').value !== '') {
-        toggleErrorStylingFrame('balanceFrame', 'balanceErr', true);
-      }
-      clearOutputDisplayElements();
-      return;
-    }
-
-    var calculatedRiskUsd = (bal * riskPct) / 100;
-    var safeCapitalRemaining = bal - calculatedRiskUsd;
-    var localizedGradeData = parseRiskGradeLetter(riskPct);
-    var matchingCritiqueMessage = fetchSystemCritiqueMessageText(riskPct);
-
-    document.getElementById('outRiskUsd').textContent = formatCurrencyDisplay(calculatedRiskUsd);
-    document.getElementById('outCapitalRetained').textContent = formatCurrencyDisplay(safeCapitalRemaining);
-    document.getElementById('outRiskGrade').innerHTML = '<span style="color:' + localizedGradeData.c + '">' + localizedGradeData.l + '</span>';
-
-    var finalComputedPositionString = '—';
-
-    if(currentNetworkMode === 'forex') {
-      document.getElementById('outPosSizeLabel').textContent = 'LOTS METRIC';
-      
-      var fxSlVal = parseFloat(document.getElementById('fxSlInput').value);
-      var fxPipValueVal = parseFloat(document.getElementById('fxPipValueInput').value);
-      
-      var hasSlContent = document.getElementById('fxSlInput').value !== '';
-      var hasPipContent = document.getElementById('fxPipValueInput').value !== '';
-
-      var isSlInputValid = !isNaN(fxSlVal) && fxSlVal > 0;
-      var isPipInputValid = !isNaN(fxPipValueVal) && fxPipValueVal > 0;
-
-      if(hasSlContent && !isSlInputValid) toggleErrorStylingFrame('fxSlFrame', 'fxSlErr', true);
-      if(hasPipContent && !isPipInputValid) toggleErrorStylingFrame('fxPipValueFrame', 'fxPipValueErr', true);
-
-      if(isSlInputValid && isPipInputValid) {
-        var computedLots = calculatedRiskUsd / (fxSlVal * fxPipValueVal);
-        finalComputedPositionString = computedLots.toFixed(4) + ' LOTS';
-      } else {
-        finalComputedPositionString = 'AWAITING METRICS';
-      }
-    } else {
-      document.getElementById('outPosSizeLabel').textContent = 'ALLOCATION SIZE';
-      
-      if(isAdvancedCryptoPanelOpen) {
-        var entryPriceVal = parseFloat(document.getElementById('cryptoEntryInput').value);
-        var stopLossPriceVal = parseFloat(document.getElementById('cryptoSlInput').value);
-        var takeProfitPriceVal = parseFloat(document.getElementById('cryptoTpInput').value);
-
-        var hasEntryContent = document.getElementById('cryptoEntryInput').value !== '';
-        var hasSlContent = document.getElementById('cryptoSlInput').value !== '';
-        var hasTpContent = document.getElementById('cryptoTpInput').value !== '';
-
-        var isEntryValid = !isNaN(entryPriceVal) && entryPriceVal > 0;
-        var isSlValid = !isNaN(stopLossPriceVal) && stopLossPriceVal > 0;
-
-        if(hasEntryContent && !isEntryValid) toggleErrorStylingFrame('cryptoEntryFrame', 'cryptoEntryErr', true);
-        if(hasSlContent && !isSlValid) toggleErrorStylingFrame('cryptoSlFrame', 'cryptoSlErr', true);
-
-        if(isEntryValid && isSlValid) {
-          var deltaPriceDistance = Math.abs(entryPriceVal - stopLossPriceVal);
-          if(deltaPriceDistance < 0.000001) {
-            toggleErrorStylingFrame('cryptoSlFrame', 'cryptoSlErr', true);
-            finalComputedPositionString = 'INVALID DISTANCE';
-          } else {
-            finalComputedPositionString = formatTokenUnits(calculatedRiskUsd / deltaPriceDistance);
-            
-            // Optional R:R Engine Subroutine
-            if(!isNaN(takeProfitPriceVal) && takeProfitPriceVal > 0) {
-              var riskDirectionIsLong = stopLossPriceVal < entryPriceVal;
-              var isTpOnCorrectProfitSide = riskDirectionIsLong ? (takeProfitPriceVal > entryPriceVal) : (takeProfitPriceVal < entryPriceVal);
-              
-              if(isTpOnCorrectProfitSide) {
-                var calculatedRrMetricValue = Math.abs(takeProfitPriceVal - entryPriceVal) / deltaPriceDistance;
-                document.getElementById('outCryptoRr').textContent = calculatedRrMetricValue.toFixed(2) + ' R:R';
-              } else {
-                if(hasTpContent) toggleErrorStylingFrame('cryptoTpFrame', 'cryptoTpErr', true);
-                document.getElementById('outCryptoRr').textContent = 'TP ERROR';
-              }
+            const pairGroup = document.getElementById('pair-type-group');
+            if (market === 'forex') {
+                pairGroup.style.display = 'block';
+                document.getElementById('entry').placeholder = '1.12000';
+                document.getElementById('stoploss').placeholder = '1.11500';
+                document.getElementById('submit-btn').innerHTML = 'Calculate My Forex Position &rarr;';
             } else {
-              document.getElementById('outCryptoRr').textContent = '—';
+                pairGroup.style.display = 'none';
+                document.getElementById('entry').placeholder = '50000';
+                document.getElementById('stoploss').placeholder = '49500';
+                document.getElementById('submit-btn').innerHTML = 'Calculate My Crypto Position &rarr;';
             }
-          }
-        } else {
-          finalComputedPositionString = 'AWAITING COORDS';
+
+            document.getElementById('market-section').style.display = 'none';
+            document.getElementById('calc-section').style.display = 'block';
+            document.getElementById('results-box').style.display = 'none';
         }
-      } else {
-        finalComputedPositionString = 'OPEN MATRIX TO COMPUTE';
-      }
-    }
 
-    document.getElementById('outPositionSize').textContent = finalComputedPositionString;
+        function goBack() {
+            document.getElementById('calc-section').style.display = 'none';
+            document.getElementById('market-section').style.display = 'block';
+            document.getElementById('results-box').style.display = 'none';
+            clearMessages();
+        }
 
-    var critiqueBlockElement = document.getElementById('systemCritiqueMessage');
-    critiqueBlockElement.textContent = matchingCritiqueMessage;
-    critiqueBlockElement.style.display = 'block';
-    critiqueBlockElement.style.borderColor = localizedGradeData.c + '44';
-    critiqueBlockElement.style.color = localizedGradeData.c;
+        function clearMessages() {
+            document.getElementById('error-msg').style.display = 'none';
+            document.getElementById('warn-msg').style.display = 'none';
+        }
 
-    telemetrySnapshotObject = {
-      bal: bal,
-      riskPct: riskPct,
-      riskUsd: calculatedRiskUsd,
-      posSizeStr: finalComputedPositionString,
-      gradeStr: localizedGradeData.l,
-      modeStr: currentNetworkMode
-    };
-  };
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
 
-  window.transmitLeadPipeline = function() {
-    var emailInputVal = document.getElementById('subscriberEmailField').value.trim();
-    var submitButtonElement = document.getElementById('subscriberSubmitBtn');
-    var emailErrorElement = document.getElementById('subscriberEmailErr');
-    
-    emailErrorElement.style.display = 'none';
+        function showWarning(msg) {
+            const el = document.getElementById('warn-msg');
+            el.textContent = msg;
+            el.style.display = msg ? 'block' : 'none';
+        }
 
-    if(!emailInputVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInputVal)) {
-      emailErrorElement.style.display = 'block';
-      document.getElementById('subscriberEmailField').focus();
-      return;
-    }
+        function gradeRisk(pct) {
+            if (pct <= 1) return { label: 'A — Excellent', score: 100, color: 'var(--green)' };
+            if (pct <= 2) return { label: 'B — Good', score: 78, color: 'var(--lime)' };
+            if (pct <= 3) return { label: 'C — Borderline', score: 55, color: 'var(--accent-color)' };
+            if (pct <= 5) return { label: 'D — High risk', score: 32, color: 'var(--orange)' };
+            return { label: 'F — Dangerous', score: 12, color: 'var(--red)' };
+        }
 
-    submitButtonElement.disabled = true;
-    submitButtonElement.textContent = 'TRANSMITTING';
+        function fmtUSD(n) {
+            return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
 
-    var currentSnapshot = telemetrySnapshotObject || {};
-    
-    var compiledFormPayload = new URLSearchParams();
-    compiledFormPayload.append("form-name", "trade-leads");
-    compiledFormPayload.append("email", emailInputVal);
-    compiledFormPayload.append("market", currentSnapshot.modeStr || "unselected");
-    compiledFormPayload.append("account_size", String(currentSnapshot.bal || ""));
-    compiledFormPayload.append("risk_pct", String(currentSnapshot.riskPct || ""));
-    compiledFormPayload.append("risk_amount", currentSnapshot.riskUsd ? currentSnapshot.riskUsd.toFixed(2) : "");
-    compiledFormPayload.append("position_size", currentSnapshot.posSizeStr || "");
-    compiledFormPayload.append("bot-field", "");
+        function calculatePosition() {
+            clearMessages();
 
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: compiledFormPayload.toString()
-    })
-    .then(function(response) {
-      if(response.ok) {
-        displayGateSuccessPanel();
-      } else {
-        throw new Error("Form system network interface issue.");
-      }
-    })
-    .catch(function(err) {
-      console.error('Lead pipeline transmission failure:', err);
-      emailErrorElement.textContent = 'TRANSMISSION ABORTED: Retry structural connection.';
-      emailErrorElement.style.display = 'block';
-    })
-    .finally(function() {
-      submitButtonElement.disabled = false;
-      submitButtonElement.textContent = 'SUBSCRIBE';
-    });
-  };
+            const balance = parseFloat(document.getElementById('balance').value);
+            const riskPct = parseFloat(document.getElementById('risk').value);
+            const entry   = parseFloat(document.getElementById('entry').value);
+            const sl      = parseFloat(document.getElementById('stoploss').value);
+            const name    = document.getElementById('name').value.trim();
+            const email   = document.getElementById('email').value.trim();
 
-  function displayGateSuccessPanel() {
-    document.getElementById('gateActiveDisplay').style.display = 'none';
-    document.getElementById('gateSuccessDisplay').style.display = 'block';
-    
-    var baselineCleanUrl = window.location.href.split('?')[0].split('#')[0];
-    var currentSnapshot = telemetrySnapshotObject;
-    var dynamicBroadcastString = currentSnapshot
-      ? 'TRAFLECT// TERMINAL STATUS: Size at ' + currentSnapshot.posSizeStr + ' | Risk: $' + currentSnapshot.riskUsd.toFixed(2) + ' (' + currentSnapshot.riskPct.toFixed(1) + '% - PROFILE: ' + currentSnapshot.gradeStr + '). Test parameters here: ' + baselineCleanUrl
-      : 'TRAFLECT// BETA: Precision position engineering engine deployed. Map exposure variables instantly: ' + baselineCleanUrl;
-    
-    document.getElementById('sharePlatformX').href = 'https://x.com/intent/tweet?text=' + encodeURIComponent(dynamicBroadcastString);
-    document.getElementById('shareDataClipboardBtn')._copiedTelemetryDataString = dynamicBroadcastString;
-  }
+            if (!balance || balance <= 0) return showError('Enter a valid account balance.');
+            if (!riskPct || riskPct <= 0 || riskPct > 100) return showError('Risk % must be between 0.01 and 100.');
+            if (!entry || entry <= 0) return showError('Enter a valid entry price.');
+            if (!sl || sl <= 0) return showError('Enter a valid stop loss price.');
+            if (entry === sl) return showError('Entry and stop loss cannot be the same.');
+            if (!name) return showError('Enter your first name to unlock results.');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Enter a valid email address.');
 
-  window.copyResultMetricsToClipboard = function(buttonContext) {
-    var rawTextData = buttonContext._copiedTelemetryDataString || 'TRAFLECT // ALPHA PLATFORM CALCULATION ENGINE';
-    navigator.clipboard.writeText(rawTextData).then(function() {
-      triggerToastAlert('METRICS SNAPSHOT LOADED TO CLIPBOARD');
-    }).catch(function() {
-      triggerToastAlert('AUTOMATED DATA EXTRACTION FAILED');
-    });
-  };
+            const cashAtRisk = balance * (riskPct / 100);
+            let sizeStr = '', sizeSub = '';
 
-  // Run initial state setup
-  changeMode('crypto');
-  handleSliderChange();
-})();
-</script>
+            if (selectedMarket === 'crypto') {
+                const slDist = Math.abs(entry - sl);
+                const units = cashAtRisk / slDist;
+                const posValue = units * entry;
+                sizeStr = fmtUSD(posValue);
+                sizeSub = '≈ ' + units.toFixed(6) + ' units';
+            } else {
+                const pairType = document.getElementById('pair-type').value;
+                const slDist = Math.abs(entry - sl);
+                if (pairType === 'major') {
+                    const pips = slDist / 0.0001;
+                    const lots = cashAtRisk / (pips * 10);
+                    sizeStr = lots.toFixed(2) + ' lots';
+                    sizeSub = Math.round(lots * 100000).toLocaleString() + ' units · ' + pips.toFixed(1) + ' pip SL';
+                } else if (pairType === 'jpy') {
+                    const pips = slDist / 0.01;
+                    const lots = cashAtRisk / (pips * 9.09);
+                    sizeStr = lots.toFixed(2) + ' lots';
+                    sizeSub = Math.round(lots * 100000).toLocaleString() + ' units · ' + pips.toFixed(1) + ' pip SL';
+                } else {
+                    const pips = slDist / 0.1;
+                    const lots = cashAtRisk / (pips * 10);
+                    sizeStr = lots.toFixed(3) + ' lots';
+                    sizeSub = pips.toFixed(1) + ' pip SL on XAU/USD';
+                }
+            }
+
+            if (sl > entry) showWarning('Stop loss is above entry — calculated as a short position.');
+
+            const grade = gradeRisk(riskPct);
+            document.getElementById('pos-size-output').textContent = sizeStr;
+            document.getElementById('size-sub').textContent = sizeSub;
+            document.getElementById('risk-output').textContent = fmtUSD(cashAtRisk);
+            document.getElementById('risk-sub').textContent = riskPct + '% of account';
+            document.getElementById('grade-label').textContent = grade.label;
+
+            const fill = document.getElementById('grade-fill');
+            fill.style.background = grade.color;
+            fill.style.width = '0';
+
+            document.getElementById('results-box').style.display = 'block';
+            setTimeout(() => { fill.style.width = grade.score + '%'; }, 80);
+
+            // Submit lead to Netlify (form-name is REQUIRED for AJAX submissions)
+            const payload = new URLSearchParams({
+                'form-name': 'trader-leads',
+                'name': name,
+                'email': email,
+                'market_type': selectedMarket,
+                'balance': balance,
+                'risk': riskPct,
+                'entry': entry,
+                'stoploss': sl,
+                'bot-field': ''
+            }).toString();
+
+            fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload
+            })
+            .then(() => {
+                document.getElementById('done-name').textContent = name;
+                document.getElementById('done-email').textContent = email;
+                document.getElementById('calc-section').style.display = 'none';
+                document.getElementById('success-section').style.display = 'block';
+            })
+            .catch((err) => {
+                console.error('Submission error:', err);
+                // Results already shown; lead failed silently — keep UX intact
+            });
+        }
+    </script>
 </body>
 </html>
