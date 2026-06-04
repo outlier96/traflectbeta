@@ -1,81 +1,3 @@
-Claude finished the response
-
-Act as a Senior UX Strategist and optimize this lead capture page also analyze code to make sure everything is working
-2:04 PM
-Reading frontend design skill
-
-Now let me analyze the code thoroughly, then build the optimized version.
-
-Code Analysis — Issues Found:
-
-    Broken Netlify form detection — event.preventDefault() fires before Netlify's bot can fingerprint the submission. The hidden form-name field is missing (Netlify requires it for AJAX submissions).
-    Forex pip math is wrong — The formula assumes all pairs are 4-decimal majors (USD-quoted). JPY pairs (e.g. USDJPY) use 2 decimals where 1 pip = 0.01, so / 0.0001 produces 100× wrong lot sizes.
-    Crypto position size logic — cashAtRisk / riskDistancePct gives total position value, not units/coins. Most traders want units (e.g. 0.43 BTC), not just dollar size.
-    No input validation — Negative balances, 0% risk, or a stop loss above entry on a long are all silently accepted.
-    UX friction — Email gate is placed after trading inputs. Users fill 4 fields, hit calculate, then see a name/email wall. High drop-off point. Better: capture email first or show a partial result teaser.
-    No result-to-CTA bridge — After showing the result, there's no next step (no "Save this to your journal", no SignalEdge pitch).
-    Results box is dashed/faint — Visually weak for the payoff moment.
-    No mobile keyboard optimization — inputmode="decimal" missing on number fields.
-
-Now I have everything I need. Let me build the optimized version.
-
-Here's the full breakdown of every fix and UX decision made:
-
-Bugs fixed
-
-The biggest one: the original AJAX Netlify submission was missing form-name in the POST body, which is a hard requirement for Netlify's background submission to work. Without it, every lead silently fails. Added it. The event.preventDefault() was also fine — the issue was purely the missing field.
-
-Forex math corrected in two ways. First, JPY pairs use / 0.01 (not / 0.0001) — using the major formula on USDJPY gives lot sizes that are 100× too small. Second, Gold (XAU/USD) was completely unhandled. Added a pair type selector covering majors, JPY pairs, and gold with correct pip values for each.
-
-Crypto now outputs both dollar value AND units. A trader needs to know "0.023 BTC" not just "$1,150" to place an actual order.
-
-UX strategy changes
-
-The email gate was moved to after the trading inputs are filled but before the result is shown — not a hard wall, but a soft unlock framing ("your results are free, enter your email to unlock them"). This is the classic lead magnet pattern and converts much better than a form-at-the-bottom layout where users feel trapped.
-
-A risk discipline score (A–F grade with an animated bar) was added as the "payoff moment" — it uses the same grading logic already built into SignalEdge's core system, so it's both useful and a natural demo of what the full product does.
-
-The CTA bridge at the bottom of the result ties the tool directly to SignalEdge: "Track this trade in SignalEdge." The sendPrompt button asks Claude about the product, which is a natural next step for curious users.
-
-Short/long detection — if stop loss is above entry, a warning tells the user we're treating it as a short, rather than silently computing a negative position.
-
-All inputs now have inputmode="decimal" for mobile, which triggers the numeric keyboard on iOS/Android.
-
-show fix
-2:15 PM
-Recognized request for production-ready code artifact
-
-You want the actual deployable file with all the fixes applied. Let me build it.
-Production-ready fixed lead capture page for Netlify deployment
-
-Let me verify the file is valid and the logic holds up.
-Validating the fixed HTML logic and Netlify wiring
-
-Let me remove a leftover dead line I noticed, then verify the math with real numbers.
-Edited 2 files, ran a command
-
-The math checks out — every market's loss-at-stop equals the intended cash at risk, which is the whole point of position sizing. The old JPY bug would have told a trader to take 0.002 lots instead of 0.22 lots (100× undersized).
-Ran a command, read a file
-
-This is the drop-in replacement for your index.html at the repo root. Every fix verified against real numbers.
-
-The critical bug — your original Netlify form never would have captured a single lead. AJAX submissions to Netlify require form-name in the POST body, and they require a static (non-JS-rendered) copy of the form in the deployed HTML for build-time detection. Your form was rendered fine but the fetch payload was missing form-name, and there was no static form for Netlify to find. Both are now in place, plus a honeypot field to cut spam.
-
-What changed in the deployment setup: Netlify reads the hidden <form name="trader-leads" netlify> block at the bottom of the page during build to register the form. The visible UI submits to it via fetch('/'). This is the pattern that actually works with a JS-controlled flow — don't delete that hidden form or submissions stop registering.
-
-Math fixes: JPY pairs now divide by 0.01 (was 0.0001 — a 100× error), gold (XAUUSD) is handled as its own pair type, and crypto outputs both dollar position value and coin units so traders can actually place the order.
-
-UX restructure: three steps now — market pick → calculate (with email gate framed as "unlock your results") → confirmation screen. The email field sits right before the calculate button as a soft unlock rather than a wall at the bottom, and the result pays off with an A–F risk discipline score and a SignalEdge CTA.
-
-One thing to wire up on your end: the "Get Access" button in the result and the CTA link currently point to #. Point those at your beta signup or app URL once that's live.
-
-Want me to add a Resend notification trigger via a Netlify Function so you get an email each time a lead comes in, matching the setup you had going?
-Index
-Code · HTML 
-
-
-Claude is AI and can make mistakes. Please double-check responses.
-Index · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,32 +18,24 @@ Index · HTML
             --orange: #f97316;
             --red: #ef4444;
         }
- 
         * { box-sizing: border-box; margin: 0; padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
- 
         body { background-color: var(--bg-color); color: var(--text-main);
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh; padding: 20px; }
- 
         .container { background-color: var(--card-bg); border: 1px solid var(--border-color);
             border-radius: 12px; width: 100%; max-width: 480px; padding: 32px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
- 
         .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
         .brand-mark { width: 32px; height: 32px; background: var(--accent-color);
             border-radius: 7px; display: flex; align-items: center; justify-content: center;
             font-weight: 800; color: #000; font-size: 18px; }
-        .brand-name { font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
-            text-transform: uppercase; }
+        .brand-name { font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
         .brand-badge { font-size: 10px; font-weight: 600; background: rgba(240,185,11,0.15);
-            color: var(--accent-color); padding: 3px 8px; border-radius: 20px;
-            margin-left: auto; letter-spacing: 0.04em; }
- 
+            color: var(--accent-color); padding: 3px 8px; border-radius: 20px; margin-left: auto; letter-spacing: 0.04em; }
         .header { margin-bottom: 24px; }
         .header h1 { font-size: 22px; margin-bottom: 8px; color: #fff; line-height: 1.3; }
         .header p { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
- 
         .market-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
         .market-btn { background: var(--bg-color); border: 2px solid var(--border-color);
             border-radius: 8px; padding: 16px 12px; color: var(--text-main); cursor: pointer;
@@ -131,13 +45,10 @@ Index · HTML
         .market-btn .mkt-title { font-size: 15px; font-weight: 600; display: block; }
         .market-btn.active .mkt-title { color: var(--accent-color); }
         .market-btn .mkt-hint { font-size: 11px; color: var(--text-muted); display: block; margin-top: 3px; }
- 
         #calc-section { display: none; }
- 
         .back-btn { background: none; border: none; color: var(--text-muted); font-size: 13px;
             cursor: pointer; padding: 0; margin-bottom: 16px; }
         .back-btn:hover { color: var(--text-main); }
- 
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600;
@@ -146,47 +57,37 @@ Index · HTML
             border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; color: #fff;
             font-size: 15px; transition: border-color 0.2s; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent-color); }
- 
+        .optional-tag { color: var(--text-muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
         .divider { height: 1px; background-color: var(--border-color); margin: 24px 0 20px; }
- 
         .gate-note { display: flex; gap: 8px; align-items: flex-start; font-size: 13px;
             color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
         .gate-note span.lock { color: var(--accent-color); font-size: 15px; }
- 
         .error-msg { display: none; font-size: 13px; color: #fff; background: rgba(239,68,68,0.15);
             border: 1px solid rgba(239,68,68,0.4); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
         .warn-msg { display: none; font-size: 13px; color: var(--accent-color); background: rgba(240,185,11,0.1);
             border: 1px solid rgba(240,185,11,0.3); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
- 
         .submit-btn { width: 100%; background-color: var(--accent-color); color: #000; border: none;
-            border-radius: 6px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer;
-            transition: opacity 0.2s; }
+            border-radius: 6px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
         .submit-btn:hover { opacity: 0.9; }
- 
         .results-box { display: none; background-color: rgba(240, 185, 11, 0.05);
             border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px; }
         .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase;
-            letter-spacing: 0.5px; margin-bottom: 4px; }
+        .metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .metric-val { font-size: 24px; font-weight: 700; color: var(--accent-color); }
         .metric-val.neutral { color: #fff; }
         .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
- 
         .grade-wrap { margin-top: 18px; }
         .grade-head { display: flex; justify-content: space-between; font-size: 11px;
             text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; }
         .grade-track { height: 6px; background: var(--bg-color); border-radius: 3px; overflow: hidden; }
         .grade-fill { height: 6px; border-radius: 3px; width: 0; transition: width 0.7s cubic-bezier(0.22,1,0.36,1); }
- 
-        .cta { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color);
-            display: flex; gap: 12px; align-items: center; }
+        .cta { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; align-items: center; }
         .cta-text { flex: 1; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
         .cta-text strong { display: block; color: #fff; font-size: 13px; margin-bottom: 2px; }
         .cta-btn { flex-shrink: 0; background: var(--bg-color); border: 1px solid var(--border-color);
             color: #fff; border-radius: 6px; padding: 9px 14px; font-size: 13px; font-weight: 600;
-            cursor: pointer; white-space: nowrap; transition: border-color 0.2s; }
+            text-decoration: none; cursor: pointer; white-space: nowrap; transition: border-color 0.2s; }
         .cta-btn:hover { border-color: var(--accent-color); }
- 
         .success-screen { display: none; text-align: center; padding: 8px 0; }
         .success-screen .check { font-size: 40px; margin-bottom: 12px; }
         .success-screen h2 { font-size: 18px; color: #fff; margin-bottom: 6px; }
@@ -195,15 +96,13 @@ Index · HTML
     </style>
 </head>
 <body>
- 
     <div class="container">
         <div class="brand">
             <div class="brand-mark">S</div>
             <span class="brand-name">SignalEdge</span>
             <span class="brand-badge">Private Beta</span>
         </div>
- 
-        <!-- STEP 1: Market selection -->
+
         <div id="market-section">
             <div class="header">
                 <h1>Know your exact risk before you enter.</h1>
@@ -220,33 +119,37 @@ Index · HTML
                 </div>
             </div>
         </div>
- 
-        <!-- STEP 2: Calculator + lead capture -->
+
         <div id="calc-section">
             <button type="button" class="back-btn" onclick="goBack()">&larr; Change market</button>
- 
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="balance">Account Balance ($)</label>
-                    <input type="number" id="balance" inputmode="decimal" placeholder="10000" min="1" step="any">
+                    <input type="text" id="balance" inputmode="decimal" autocomplete="off" placeholder="10000">
                 </div>
                 <div class="form-group">
                     <label for="risk">Risk %</label>
-                    <input type="number" id="risk" inputmode="decimal" placeholder="1" min="0.01" max="100" step="any">
+                    <input type="text" id="risk" inputmode="decimal" autocomplete="off" placeholder="1">
                 </div>
             </div>
- 
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="entry">Entry Price</label>
-                    <input type="number" id="entry" inputmode="decimal" placeholder="50000" step="any">
+                    <input type="text" id="entry" inputmode="decimal" autocomplete="off" placeholder="50000">
                 </div>
                 <div class="form-group">
-                    <label for="stoploss">Stop Loss Price</label>
-                    <input type="number" id="stoploss" inputmode="decimal" placeholder="49500" step="any">
+                    <label for="stoploss">Stop Loss</label>
+                    <input type="text" id="stoploss" inputmode="decimal" autocomplete="off" placeholder="49500">
                 </div>
             </div>
- 
+
+            <div class="form-group">
+                <label for="takeprofit">Take Profit <span class="optional-tag">(optional — enables R:R grade)</span></label>
+                <input type="text" id="takeprofit" inputmode="decimal" autocomplete="off" placeholder="51000">
+            </div>
+
             <div class="form-group" id="pair-type-group" style="display:none;">
                 <label for="pair-type">Pair Type</label>
                 <select id="pair-type">
@@ -255,33 +158,32 @@ Index · HTML
                     <option value="gold">Gold (XAUUSD)</option>
                 </select>
             </div>
- 
+
             <div id="error-msg" class="error-msg"></div>
             <div id="warn-msg" class="warn-msg"></div>
- 
+
             <div class="divider"></div>
- 
+
             <div class="gate-note">
                 <span class="lock">&#128274;</span>
                 <span>Your results are free. Enter your email to unlock them and claim early beta access to SignalEdge.</span>
             </div>
- 
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="name">First Name</label>
-                    <input type="text" id="name" placeholder="Alex">
+                    <input type="text" id="name" autocomplete="given-name" placeholder="Alex">
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" inputmode="email" placeholder="alex@email.com">
+                    <input type="email" id="email" inputmode="email" autocomplete="email" placeholder="alex@email.com">
                 </div>
             </div>
- 
+
             <button type="button" class="submit-btn" id="submit-btn" onclick="calculatePosition()">
                 Calculate My Position Size &rarr;
             </button>
- 
-            <!-- Results -->
+
             <div class="results-box" id="results-box">
                 <div class="results-grid">
                     <div>
@@ -295,9 +197,21 @@ Index · HTML
                         <div class="metric-sub" id="risk-sub"></div>
                     </div>
                 </div>
+                <div class="results-grid" id="rr-row" style="margin-top:16px; display:none;">
+                    <div>
+                        <div class="metric-label">Risk : Reward</div>
+                        <div class="metric-val neutral" id="rr-output">—</div>
+                        <div class="metric-sub" id="rr-sub"></div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Potential Profit</div>
+                        <div class="metric-val neutral" id="profit-output">—</div>
+                        <div class="metric-sub">if TP is hit</div>
+                    </div>
+                </div>
                 <div class="grade-wrap">
                     <div class="grade-head">
-                        <span>Risk discipline score</span>
+                        <span>Trade quality score</span>
                         <span id="grade-label">&mdash;</span>
                     </div>
                     <div class="grade-track">
@@ -313,17 +227,14 @@ Index · HTML
                 </div>
             </div>
         </div>
- 
-        <!-- STEP 3: Confirmation -->
+
         <div id="success-section" class="success-screen">
             <div class="check">&#9989;</div>
             <h2>You're on the list, <span id="done-name">trader</span>!</h2>
             <p>We'll send your beta invite to <span class="email-hl" id="done-email"></span>.<br>Watch your inbox over the next few days.</p>
         </div>
     </div>
- 
-    <!-- Hidden static form for Netlify build-time detection. -->
-    <!-- Netlify scans the deployed HTML for this; the JS submits to it via fetch. -->
+
     <form name="trader-leads" netlify netlify-honeypot="bot-field" hidden>
         <input type="text" name="name" />
         <input type="email" name="email" />
@@ -332,168 +243,175 @@ Index · HTML
         <input type="text" name="risk" />
         <input type="text" name="entry" />
         <input type="text" name="stoploss" />
+        <input type="text" name="takeprofit" />
         <input type="text" name="bot-field" />
     </form>
- 
+
     <script>
         let selectedMarket = '';
- 
+
+        function num(id) {
+            // Accept commas, spaces, stray characters — keep digits, dot, minus
+            var raw = (document.getElementById(id).value || '').toString().trim().replace(/,/g, '');
+            var cleaned = raw.replace(/[^0-9.\-]/g, '');
+            var v = parseFloat(cleaned);
+            return isNaN(v) ? null : v;
+        }
+
         function selectMarket(market) {
             selectedMarket = market;
             document.getElementById('btn-crypto').classList.toggle('active', market === 'crypto');
             document.getElementById('btn-forex').classList.toggle('active', market === 'forex');
- 
-            const pairGroup = document.getElementById('pair-type-group');
+            var pairGroup = document.getElementById('pair-type-group');
             if (market === 'forex') {
                 pairGroup.style.display = 'block';
                 document.getElementById('entry').placeholder = '1.12000';
                 document.getElementById('stoploss').placeholder = '1.11500';
+                document.getElementById('takeprofit').placeholder = '1.13000';
                 document.getElementById('submit-btn').innerHTML = 'Calculate My Forex Position &rarr;';
             } else {
                 pairGroup.style.display = 'none';
                 document.getElementById('entry').placeholder = '50000';
                 document.getElementById('stoploss').placeholder = '49500';
+                document.getElementById('takeprofit').placeholder = '51000';
                 document.getElementById('submit-btn').innerHTML = 'Calculate My Crypto Position &rarr;';
             }
- 
             document.getElementById('market-section').style.display = 'none';
             document.getElementById('calc-section').style.display = 'block';
             document.getElementById('results-box').style.display = 'none';
         }
- 
+
         function goBack() {
             document.getElementById('calc-section').style.display = 'none';
             document.getElementById('market-section').style.display = 'block';
             document.getElementById('results-box').style.display = 'none';
             clearMessages();
         }
- 
+
         function clearMessages() {
             document.getElementById('error-msg').style.display = 'none';
             document.getElementById('warn-msg').style.display = 'none';
         }
- 
-        function showError(msg) {
-            const el = document.getElementById('error-msg');
-            el.textContent = msg;
-            el.style.display = 'block';
+        function showError(msg) { var el = document.getElementById('error-msg'); el.textContent = msg; el.style.display = 'block'; }
+        function showWarning(msg) { var el = document.getElementById('warn-msg'); el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+
+        function gradeFromScore(s) {
+            if (s >= 90) return 'A — Excellent';
+            if (s >= 75) return 'B — Good';
+            if (s >= 55) return 'C — Borderline';
+            if (s >= 35) return 'D — High risk';
+            return 'F — Dangerous';
         }
- 
-        function showWarning(msg) {
-            const el = document.getElementById('warn-msg');
-            el.textContent = msg;
-            el.style.display = msg ? 'block' : 'none';
+        function colorFromScore(s) {
+            if (s >= 90) return 'var(--green)';
+            if (s >= 75) return 'var(--lime)';
+            if (s >= 55) return 'var(--accent-color)';
+            if (s >= 35) return 'var(--orange)';
+            return 'var(--red)';
         }
- 
-        function gradeRisk(pct) {
-            if (pct <= 1) return { label: 'A — Excellent', score: 100, color: 'var(--green)' };
-            if (pct <= 2) return { label: 'B — Good', score: 78, color: 'var(--lime)' };
-            if (pct <= 3) return { label: 'C — Borderline', score: 55, color: 'var(--accent-color)' };
-            if (pct <= 5) return { label: 'D — High risk', score: 32, color: 'var(--orange)' };
-            return { label: 'F — Dangerous', score: 12, color: 'var(--red)' };
+        function riskScore(pct) {
+            if (pct <= 1) return 100; if (pct <= 2) return 80; if (pct <= 3) return 55; if (pct <= 5) return 32; return 12;
         }
- 
-        function fmtUSD(n) {
-            return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        function rrScore(rr) {
+            if (rr >= 3) return 100; if (rr >= 2) return 80; if (rr >= 1.5) return 55; if (rr >= 1) return 35; return 15;
         }
- 
+        function fmtUSD(n) { return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
         function calculatePosition() {
             clearMessages();
- 
-            const balance = parseFloat(document.getElementById('balance').value);
-            const riskPct = parseFloat(document.getElementById('risk').value);
-            const entry   = parseFloat(document.getElementById('entry').value);
-            const sl      = parseFloat(document.getElementById('stoploss').value);
-            const name    = document.getElementById('name').value.trim();
-            const email   = document.getElementById('email').value.trim();
- 
-            if (!balance || balance <= 0) return showError('Enter a valid account balance.');
-            if (!riskPct || riskPct <= 0 || riskPct > 100) return showError('Risk % must be between 0.01 and 100.');
-            if (!entry || entry <= 0) return showError('Enter a valid entry price.');
-            if (!sl || sl <= 0) return showError('Enter a valid stop loss price.');
+            var balance = num('balance'), riskPct = num('risk'), entry = num('entry'), sl = num('stoploss'), tp = num('takeprofit');
+            var name = document.getElementById('name').value.trim();
+            var email = document.getElementById('email').value.trim();
+
+            if (balance === null || balance <= 0) return showError('Enter a valid account balance.');
+            if (riskPct === null || riskPct <= 0 || riskPct > 100) return showError('Risk % must be between 0.01 and 100.');
+            if (entry === null || entry <= 0) return showError('Enter a valid entry price.');
+            if (sl === null || sl <= 0) return showError('Enter a valid stop loss price.');
             if (entry === sl) return showError('Entry and stop loss cannot be the same.');
+            if (tp !== null && tp === entry) return showError('Take profit cannot equal entry price.');
             if (!name) return showError('Enter your first name to unlock results.');
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Enter a valid email address.');
- 
-            const cashAtRisk = balance * (riskPct / 100);
-            let sizeStr = '', sizeSub = '';
- 
+
+            var cashAtRisk = balance * (riskPct / 100);
+            var slDist = Math.abs(entry - sl);
+            var sizeStr = '', sizeSub = '';
+
             if (selectedMarket === 'crypto') {
-                const slDist = Math.abs(entry - sl);
-                const units = cashAtRisk / slDist;
-                const posValue = units * entry;
+                var units = cashAtRisk / slDist;
+                var posValue = units * entry;
                 sizeStr = fmtUSD(posValue);
-                sizeSub = '≈ ' + units.toFixed(6) + ' units';
+                sizeSub = '\u2248 ' + units.toFixed(6) + ' units';
             } else {
-                const pairType = document.getElementById('pair-type').value;
-                const slDist = Math.abs(entry - sl);
+                var pairType = document.getElementById('pair-type').value;
                 if (pairType === 'major') {
-                    const pips = slDist / 0.0001;
-                    const lots = cashAtRisk / (pips * 10);
+                    var pips = slDist / 0.0001, lots = cashAtRisk / (pips * 10);
                     sizeStr = lots.toFixed(2) + ' lots';
-                    sizeSub = Math.round(lots * 100000).toLocaleString() + ' units · ' + pips.toFixed(1) + ' pip SL';
+                    sizeSub = Math.round(lots * 100000).toLocaleString() + ' units \u00b7 ' + pips.toFixed(1) + ' pip SL';
                 } else if (pairType === 'jpy') {
-                    const pips = slDist / 0.01;
-                    const lots = cashAtRisk / (pips * 9.09);
+                    var pips = slDist / 0.01, lots = cashAtRisk / (pips * 9.09);
                     sizeStr = lots.toFixed(2) + ' lots';
-                    sizeSub = Math.round(lots * 100000).toLocaleString() + ' units · ' + pips.toFixed(1) + ' pip SL';
+                    sizeSub = Math.round(lots * 100000).toLocaleString() + ' units \u00b7 ' + pips.toFixed(1) + ' pip SL';
                 } else {
-                    const pips = slDist / 0.1;
-                    const lots = cashAtRisk / (pips * 10);
+                    var pips = slDist / 0.1, lots = cashAtRisk / (pips * 10);
                     sizeStr = lots.toFixed(3) + ' lots';
                     sizeSub = pips.toFixed(1) + ' pip SL on XAU/USD';
                 }
             }
- 
+
             if (sl > entry) showWarning('Stop loss is above entry — calculated as a short position.');
- 
-            const grade = gradeRisk(riskPct);
+
+            // Risk : Reward (only if TP provided)
+            var rr = null;
+            if (tp !== null && tp > 0) {
+                var reward = Math.abs(tp - entry);
+                rr = reward / slDist;
+                var potentialProfit = cashAtRisk * rr;
+                document.getElementById('rr-row').style.display = 'grid';
+                document.getElementById('rr-output').textContent = '1 : ' + rr.toFixed(2);
+                document.getElementById('rr-sub').textContent = (rr >= 2 ? 'Healthy' : rr >= 1 ? 'Below target (2.0)' : 'Poor — skip?');
+                document.getElementById('profit-output').textContent = fmtUSD(potentialProfit);
+                // TP direction sanity check
+                var longTrade = sl < entry;
+                if ((longTrade && tp < entry) || (!longTrade && tp > entry)) {
+                    showWarning('Take profit is on the wrong side of entry for this trade direction.');
+                }
+            } else {
+                document.getElementById('rr-row').style.display = 'none';
+            }
+
+            // Combined trade quality score
+            var score;
+            if (rr !== null) score = Math.round(0.5 * riskScore(riskPct) + 0.5 * rrScore(rr));
+            else score = riskScore(riskPct);
+
             document.getElementById('pos-size-output').textContent = sizeStr;
             document.getElementById('size-sub').textContent = sizeSub;
             document.getElementById('risk-output').textContent = fmtUSD(cashAtRisk);
             document.getElementById('risk-sub').textContent = riskPct + '% of account';
-            document.getElementById('grade-label').textContent = grade.label;
- 
-            const fill = document.getElementById('grade-fill');
-            fill.style.background = grade.color;
+            document.getElementById('grade-label').textContent = gradeFromScore(score) + (rr === null ? ' (risk only)' : '');
+
+            var fill = document.getElementById('grade-fill');
+            fill.style.background = colorFromScore(score);
             fill.style.width = '0';
- 
             document.getElementById('results-box').style.display = 'block';
-            setTimeout(() => { fill.style.width = grade.score + '%'; }, 80);
- 
-            // Submit lead to Netlify (form-name is REQUIRED for AJAX submissions)
-            const payload = new URLSearchParams({
+            setTimeout(function () { fill.style.width = score + '%'; }, 80);
+
+            var payload = new URLSearchParams({
                 'form-name': 'trader-leads',
-                'name': name,
-                'email': email,
-                'market_type': selectedMarket,
-                'balance': balance,
-                'risk': riskPct,
-                'entry': entry,
-                'stoploss': sl,
-                'bot-field': ''
+                'name': name, 'email': email, 'market_type': selectedMarket,
+                'balance': balance, 'risk': riskPct, 'entry': entry, 'stoploss': sl,
+                'takeprofit': (tp === null ? '' : tp), 'bot-field': ''
             }).toString();
- 
-            fetch('/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: payload
-            })
-            .then(() => {
+
+            fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: payload })
+            .then(function () {
                 document.getElementById('done-name').textContent = name;
                 document.getElementById('done-email').textContent = email;
                 document.getElementById('calc-section').style.display = 'none';
                 document.getElementById('success-section').style.display = 'block';
             })
-            .catch((err) => {
-                console.error('Submission error:', err);
-                // Results already shown; lead failed silently — keep UX intact
-            });
+            .catch(function (err) { console.error('Submission error:', err); });
         }
     </script>
 </body>
 </html>
- 
-
-    Failed to set up MCP app for "visualize". Check that claudemcpcontent.com is not blocked by your network or browser.
-
